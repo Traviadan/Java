@@ -5,6 +5,6 @@ import java.lang.annotation.Target;
 
 @Retention( value = java.lang.annotation.RetentionPolicy.RUNTIME )
 @Target( java.lang.annotation.ElementType.METHOD )
-public @interface DataFieldGetter {
+public @interface DbFieldGetter {
 	String name();
 }

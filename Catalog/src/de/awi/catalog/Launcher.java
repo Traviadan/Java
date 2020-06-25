@@ -8,6 +8,7 @@ import java.util.Enumeration;
 import javax.swing.SwingUtilities;
 
 import de.awi.catalog.models.DeviceTable;
+import de.traviadan.lib.db.Db;
 import de.traviadan.lib.helper.Log;
 import de.traviadan.lib.helper.SysProps;
 
@@ -35,6 +36,8 @@ public class Launcher {
 			  System.out.println( e.nextElement().getClass().getName() );
 		
 		DeviceTable dt = new DeviceTable();
+		Db db = new Db("catalog.db");
+		db.createTable("Test", dt.getColumnNames(), dt.getColumnTypes());
 	}
 	
 }
