@@ -6,10 +6,10 @@ import de.traviadan.lib.db.DbTableName;
 @DbTableName(name="devices")
 public class Device {
 	public enum Type {
-		Electric, Mechanic, Accessoire
+		NA, Electric, Mechanic, Accessoire
 	}
 	public enum Protection {
-		Class1, Class2
+		NA, Class1, Class2
 	}
 	
 	private int id;
@@ -24,7 +24,21 @@ public class Device {
 	private int projectid;
 	private int storageunitid;
 
-	@DbFieldGetter(name="id")
+	public Device() {
+		id = 0;
+		serialnr = "";
+		unitnr = "";
+		type = Type.NA;
+		description = "";
+		manufacturer = "";
+		protection = Protection.NA;
+		locationid = 0;
+		interval = 0;
+		projectid = 0;
+		storageunitid = 0;
+	}
+	
+	@DbFieldGetter(name="id", constraint="PRIMARY KEY")
 	public int getId() {
 		return id;
 	}
@@ -49,6 +63,9 @@ public class Device {
 	}
 
 	@DbFieldGetter(name="type")
+	public int getTypeDb() {
+		return type.ordinal();
+	}
 	public Device.Type getType() {
 		return type;
 	}
@@ -73,6 +90,9 @@ public class Device {
 	}
 
 	@DbFieldGetter(name="protection")
+	public int getProtectionDb() {
+		return protection.ordinal();
+	}
 	public Device.Protection getProtection() {
 		return protection;
 	}
