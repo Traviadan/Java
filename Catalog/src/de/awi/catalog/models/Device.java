@@ -1,6 +1,7 @@
 package de.awi.catalog.models;
 
 import de.traviadan.lib.db.DbFieldGetter;
+import de.traviadan.lib.db.DbFieldSetter;
 import de.traviadan.lib.db.DbTableName;
 
 @DbTableName(name="devices")
@@ -42,6 +43,7 @@ public class Device {
 	public int getId() {
 		return id;
 	}
+	@DbFieldSetter(name="id")
 	public void setId(int id) {
 		this.id = id;
 	}
@@ -50,6 +52,7 @@ public class Device {
 	public String getSerialnr() {
 		return serialnr;
 	}
+	@DbFieldSetter(name="serialnr")
 	public void setSerialnr(String serialnr) {
 		this.serialnr = serialnr;
 	}
@@ -58,6 +61,7 @@ public class Device {
 	public String getUnitnr() {
 		return unitnr;
 	}
+	@DbFieldSetter(name="unitnr")
 	public void setUnitnr(String unitnr) {
 		this.unitnr = unitnr;
 	}
@@ -69,6 +73,10 @@ public class Device {
 	public Device.Type getType() {
 		return type;
 	}
+	@DbFieldSetter(name="type")
+	public void setTypeDb(int ord) {
+		this.type = Device.Type.values()[ord];
+	}
 	public void setType(Device.Type type) {
 		this.type = type;
 	}
@@ -77,6 +85,7 @@ public class Device {
 	public String getDescription() {
 		return description;
 	}
+	@DbFieldSetter(name="description")
 	public void setDescription(String description) {
 		this.description = description;
 	}
@@ -85,6 +94,7 @@ public class Device {
 	public String getManufacturer() {
 		return manufacturer;
 	}
+	@DbFieldSetter(name="manufacturer")
 	public void setManufacturer(String manufacturer) {
 		this.manufacturer = manufacturer;
 	}
@@ -96,6 +106,10 @@ public class Device {
 	public Device.Protection getProtection() {
 		return protection;
 	}
+	@DbFieldSetter(name="protection")
+	public void setProtectionDb(int ord) {
+		this.protection = Device.Protection.values()[ord];
+	}
 	public void setProtection(Device.Protection protection) {
 		this.protection = protection;
 	}
@@ -104,6 +118,7 @@ public class Device {
 	public int getLocationid() {
 		return locationid;
 	}
+	@DbFieldSetter(name="locationid")
 	public void setLocationid(int locationid) {
 		this.locationid = locationid;
 	}
@@ -112,6 +127,7 @@ public class Device {
 	public int getInterval() {
 		return interval;
 	}
+	@DbFieldSetter(name="interval")
 	public void setInterval(int interval) {
 		this.interval = interval;
 	}
@@ -120,6 +136,7 @@ public class Device {
 	public int getProjectid() {
 		return projectid;
 	}
+	@DbFieldSetter(name="projectid")
 	public void setProjectid(int projectid) {
 		this.projectid = projectid;
 	}
@@ -128,6 +145,7 @@ public class Device {
 	public int getStorageunitid() {
 		return storageunitid;
 	}
+	@DbFieldSetter(name="storageunitid")
 	public void setStorageunitid(int storageunitid) {
 		this.storageunitid = storageunitid;
 	}

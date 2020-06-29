@@ -1,15 +1,19 @@
 package de.traviadan.lib.db;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLType;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Db {
 	private String name;
@@ -98,11 +102,41 @@ public class Db {
         return maxId;
 	}
 	
-	public void insert(String tableName, List<String> columns, List<Class<?>> types, List<String> constraints, List<Object> values) {
+	public List<Map<String, Object>> selectAll(String tableName, Map<String, Class<?>> columns) {
+		StringBuilder sb = new StringBuilder("Select ");
+		Iterator<String> itColumns = columns.keySet().iterator();
+		while(itColumns.hasNext()) {
+			sb.append(itColumns.next());
+			if (itColumns.hasNext()) {
+				sb.append(", ");
+			}
+		}
+		sb.append(" FROM ").append(tableName);
+		
+		List<Map<String, Object>> rsData = new ArrayList<>();
+        try (Connection conn = this.connect();
+             Statement stmt  = conn.createStatement();
+             ResultSet rs    = stmt.executeQuery(sb.toString())){
+        	
+        	while (rs.next()) {
+        		Map<String, Object> eData = new LinkedHashMap<>();
+        		for (Map.Entry<String, Class<?>> entry: columns.entrySet()) {
+					eData.put(entry.getKey(), rs.getObject(entry.getKey()));
+				}
+        		rsData.add(eData);
+			}
+            return rsData;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+	}
+	
+	public void insert(String tableName, Map<String, Class<?>> columns, Map<String, String> constraints, Map<String, Object> values) {
 		StringBuilder sb = new StringBuilder(
 				String.format("INSERT INTO %s (", tableName));
 		StringBuilder sbValues = new StringBuilder(" VALUES(");
-		Iterator<String> itColumns = columns.listIterator();
+		Iterator<String> itColumns = columns.keySet().iterator();
 		while(itColumns.hasNext()) {
 			sb.append(itColumns.next());
 			sbValues.append('?');
@@ -114,27 +148,23 @@ public class Db {
 		sbValues.append(')');
 		sb.append(") ").append(sbValues.toString());
 		
-		Iterator<Class<?>> itTypes = types.listIterator();
-		Iterator<Object> itValues = values.listIterator();
-		Iterator<String> itConstraints = constraints.listIterator();
 		try (Connection conn = connect();
                 PreparedStatement pstmt = conn.prepareStatement(sb.toString())) {
 			int idx = 0;
-			while (itTypes.hasNext()) {
+			for (Map.Entry<String, Class<?>> entry: columns.entrySet()) {
 				idx++;
-				Class<?> cTypeClass = itTypes.next();
-				Object val = itValues.next();
-				String constraint = itConstraints.next();
-				if (cTypeClass.getSimpleName().equals("int")) {
+				String constraint = constraints.get(entry.getKey());
+				Object val = values.get(entry.getKey());
+				if (entry.getValue().getSimpleName().equals("int")) {
 					int iVal = (int)val;
 					if(constraint != null && constraint.equals("PRIMARY KEY") && iVal == 0) {
 						iVal = selectLastId(tableName) + 1;
+						pstmt.setInt(idx, iVal);
+					} else if (entry.getValue().getSimpleName().equals("String")) {
+						pstmt.setString(idx, (String)val);
+					} else {
+						pstmt.setNull(idx, java.sql.Types.NULL);
 					}
-					pstmt.setInt(idx, iVal);
-				} else if (cTypeClass.getSimpleName().equals("String")) {
-					pstmt.setString(idx, (String)val);
-				} else {
-					pstmt.setNull(idx, java.sql.Types.NULL);
 				}
 			}
             pstmt.executeUpdate();
@@ -143,16 +173,15 @@ public class Db {
 		}
 	}
 	
-	public void update(String tableName, List<String> columns, List<Class<?>> types, List<String> constraints, List<Object> values) {
+	public void update(String tableName, Map<String, Class<?>> columns, Map<String, String> constraints, Map<String, Object> values) {
 		StringBuilder sb = new StringBuilder(
 				String.format("UPDATE %s SET", tableName));
 		String where = " WHERE id = ?";
 		
-		Iterator<String> itColumns = columns.listIterator();
-		Iterator<String> itConstraints = constraints.listIterator();
+		Iterator<String> itColumns = columns.keySet().iterator();
 		while (itColumns.hasNext()) {
     		String column = itColumns.next();
-			String constraint = itConstraints.next();
+			String constraint = constraints.get(column);
     		if(constraint == null || !constraint.equals("PRIMARY KEY")) {
         		sb.append(String.format(" %s = ?", column));
     			if (itColumns.hasNext()) {
@@ -164,19 +193,15 @@ public class Db {
 		}
 		sb.append(where);
 		
-		itConstraints = constraints.listIterator();
-		Iterator<Class<?>> itTypes = types.listIterator();
-		Iterator<Object> itValues = values.listIterator();
-		
         try (Connection conn = this.connect();
                 PreparedStatement pstmt = conn.prepareStatement(sb.toString())) {
 
         	int idx = 0;
         	int id = 0;
-        	while(itTypes.hasNext()) {
-        		Class<?> cTypeClass = itTypes.next();
-				Object val = itValues.next();
-				String constraint = itConstraints.next();
+        	for (Map.Entry<String, Class<?>> entry: columns.entrySet()) {
+        		Class<?> cTypeClass = entry.getValue();
+				Object val = values.get(entry.getKey());
+				String constraint = constraints.get(entry.getKey());
 				if (cTypeClass.getSimpleName().equals("int")) {
 					if(constraint == null || !constraint.equals("PRIMARY KEY")) {
 		        		idx++;

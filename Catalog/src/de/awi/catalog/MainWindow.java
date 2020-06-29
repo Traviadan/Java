@@ -29,6 +29,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 
+import de.awi.catalog.models.DeviceModel;
+import de.traviadan.lib.db.Db;
 import de.traviadan.lib.gui.GuiFactory;
 import de.traviadan.lib.gui.WindowFrame;
 import de.traviadan.lib.helper.AppProps;
@@ -43,6 +45,8 @@ public class MainWindow extends WindowFrame{
 	private JPopupMenu popupMenu;
 	private AppProps props;
 	private Log log;
+	private Db db;
+	private DeviceModel deviceTable;
 	
 	public MainWindow() {
 		super();
@@ -64,6 +68,8 @@ public class MainWindow extends WindowFrame{
 			log.msg(String.format("Property \"%s\" konnte nicht geladen werden.", "Unbekannt"), Log.Level.Warning);
 		}
 		log.msg("Initialisierung");
+		db = new Db("catalog.db");
+		deviceTable = new DeviceModel();
 		init();
 	}
 	
@@ -198,6 +204,7 @@ public class MainWindow extends WindowFrame{
 	}
 	
 	private void initTableDevice(JComponent cmp) {
+		/*
 		String[][] rowData = {
 				{ "Japan", "245" }, { "USA", "240" }, { "Italien", "220" },
 			    { "Spanien", "217" }, {"Türkei", "215"} ,{ "England", "214" },
@@ -210,7 +217,14 @@ public class MainWindow extends WindowFrame{
 		};
 
 		JTable table = new JTable(rowData, columnNames);
+		*/
+		
+		DeviceModel deviceModel = new DeviceModel();
+		DeviceTable table = new DeviceTable();
 		cmp.add(new JScrollPane(table));
+		deviceModel.populate(db);
+		table.setModel(deviceModel);
+		table.setColWidths();
 	}
 	
 	private void showOptionDialog() {

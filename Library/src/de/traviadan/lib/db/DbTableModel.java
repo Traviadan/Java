@@ -1,10 +1,16 @@
 package de.traviadan.lib.db;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
@@ -14,11 +20,11 @@ public class DbTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
 	protected Class<?> thisClass;
 	protected String tableName;
-	protected Vector<String> columnNames = new Vector<>();
-	protected Vector<Class<?>> columnTypes = new Vector<>();
-	protected Vector<String> columnConstraints = new Vector<>();
+	protected Map<String, Class<?>> columns = new LinkedHashMap<>();
+	protected Map<String, String> constraints = new LinkedHashMap<>();
+	protected Map<String, Method> getter = new LinkedHashMap<>();
+	protected Map<String, Method> setter = new LinkedHashMap<>();
 	protected List<Object> data = new ArrayList<>();
-	private Vector<Method> getterMethods = new Vector<>();
 	
 	public DbTableModel() {
 		
@@ -26,76 +32,138 @@ public class DbTableModel extends AbstractTableModel {
 	public DbTableModel(Class<?> c) {
 		thisClass = c;
 		initTableName();
-		initColumnNames();
+		initColumns();
 	}
 	
 	public Vector<String> getColumnNames() {
-		return columnNames;
+		return new Vector<String>(columns.keySet());
 	}
+	
 	public Vector<Class<?>> getColumnTypes() {
-		return columnTypes;
+		return new Vector<Class<?>>(columns.values());
+	}
+	
+	public void populate(Db db) {
+		List<Map<String, Object>> rsData = db.selectAll(tableName, columns);
+		data.clear();
+		Constructor<?> c = null;
+		try {
+			c = thisClass.getConstructor();
+		} catch (NoSuchMethodException | SecurityException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		for (Map<String, Object> eData: rsData) {
+			Object obj = null;
+			try {
+				obj = c.newInstance();
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			if (obj != null ) {
+				for (Map.Entry<String, Class<?>> entry: columns.entrySet()) {
+					if (entry.getValue().getSimpleName().equals("int")) {
+						int value = (int)eData.get(entry.getKey());
+						Method m = setter.get(entry.getKey());
+						try {
+							m.invoke(obj, value);
+						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					} else if (entry.getValue().getSimpleName().equals("String")) {
+						String value = (String)eData.get(entry.getKey());
+						Method m = setter.get(entry.getKey());
+						try {
+							m.invoke(obj, value);
+						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+			data.add(obj);
+		}
+	}
+	
+	private void initColumns() {
+		for (Method m: thisClass.getMethods()) {
+			if (m.isAnnotationPresent(DbFieldGetter.class)) {
+				String name = m.getAnnotation(DbFieldGetter.class).name();
+				String constraint = m.getAnnotation(DbFieldGetter.class).constraint();
+				columns.put(name, m.getReturnType());
+				constraints.put(name, constraint);
+				getter.put(name, m);
+			} else if (m.isAnnotationPresent(DbFieldSetter.class)) {
+				String name = m.getAnnotation(DbFieldSetter.class).name();
+				setter.put(name, m);
+			}
+		}
 	}
 	protected void initTableName() {
 		if (thisClass.isAnnotationPresent(DbTableName.class)) {
 			tableName = thisClass.getAnnotation(DbTableName.class).name();
 		}
 	}
-	protected void initColumnNames() {
-		for (Method m: thisClass.getMethods()) {
-			if (m.isAnnotationPresent(DbFieldGetter.class)) {
-				String name = m.getAnnotation(DbFieldGetter.class).name();
-				String constraint = m.getAnnotation(DbFieldGetter.class).constraint();
-				columnNames.add(name);
-				columnTypes.add(m.getReturnType());
-				columnConstraints.add(constraint);
-				getterMethods.add(m);
-			}
-		}
-	}
 
-	private Vector<Object> getValues(Object dataObj) {
-		Vector<Object> values = new Vector<>();
-		for (Method m: getterMethods) {
+	private Object getValue(Object dataObj, int col) {
+		Object value = null;
+		Object[] gArray = getter.values().toArray();
+		Method m = (Method)gArray[col];
+		try {
+			value = m.invoke(dataObj);
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return value;
+	}
+	
+	private Map<String, Object> getValues(Object dataObj) {
+		Map<String, Object> values = new HashMap<>();
+		
+		getter.forEach((name, m) -> {
 			try {
-				Object value = m.invoke(dataObj);
-				values.add(value);
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
+				values.put(name, m.invoke(dataObj));
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
+		});
+		
 		return values;
 	}
 	public int insert(Db db, Object dataObj) {
-		db.insert(tableName, columnNames, columnTypes, columnConstraints, getValues(dataObj));
+		db.insert(tableName, columns, constraints, getValues(dataObj));
 		return db.selectLastId(tableName);
 	}
 	
 	public void update(Db db, Object dataObj) {
-		db.update(tableName, columnNames, columnTypes, columnConstraints, getValues(dataObj));
+		db.update(tableName, columns, constraints, getValues(dataObj));
 	}
 
 	public void delete(Db db, Object dataObj) {
-		if (columnConstraints.indexOf("PRIMARY KEY") != -1) {
-			Method m = getterMethods.get(columnConstraints.indexOf("PRIMARY KEY"));
-			try {
-				int id = (int)m.invoke(dataObj);
-				db.delete(tableName, id);
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if (constraints.containsValue("PRIMARY KEY")) {
+			for (Map.Entry<String, String> entry: constraints.entrySet()) {
+				if (entry.getValue().equals("PRIMARY KEY")) {
+					Method m = getter.get(entry.getKey());
+					try {
+						db.delete(tableName, (int)m.invoke(dataObj));
+					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					break;
+				}
 			}
 		}
 	}
@@ -105,20 +173,17 @@ public class DbTableModel extends AbstractTableModel {
 	
 	@Override
 	public int getRowCount() {
-		// TODO Auto-generated method stub
-		return 0;
+		return data.size();
 	}
 
 	@Override
 	public int getColumnCount() {
-		// TODO Auto-generated method stub
-		return 0;
+		return columns.size();
 	}
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		// TODO Auto-generated method stub
-		return null;
+		return getValue(data.get(rowIndex), columnIndex);
 	}
 
 }

@@ -8,7 +8,7 @@ import java.util.Enumeration;
 import javax.swing.SwingUtilities;
 
 import de.awi.catalog.models.Device;
-import de.awi.catalog.models.DeviceTable;
+import de.awi.catalog.models.DeviceModel;
 import de.traviadan.lib.db.Db;
 import de.traviadan.lib.helper.Log;
 import de.traviadan.lib.helper.SysProps;
@@ -36,6 +36,7 @@ public class Launcher {
 		for ( Enumeration<Driver> e = DriverManager.getDrivers(); e.hasMoreElements(); )
 			  System.out.println( e.nextElement().getClass().getName() );
 
+		/*
 		Db db = new Db("catalog.db");
 		DeviceTable dt = new DeviceTable();
 		dt.createDbTable(db);
@@ -43,6 +44,7 @@ public class Launcher {
 		d.setId(dt.insert(db, d));
 		d.setDescription("Eine tolle Beschreibung");
 		dt.update(db, d);
+		*/
 		//dt.delete(db, d);
 	}
 	
