@@ -1,19 +1,29 @@
 package de.awi.catalog.models;
 
 import de.traviadan.lib.db.DbFieldGetter;
+import de.traviadan.lib.db.DbTableJoin;
 import de.traviadan.lib.db.DbFieldSetter;
 import de.traviadan.lib.db.DbTableName;
 
+@DbTableJoin(table = StorageUnit.class, using="storageunitid")
 @DbTableName(name="devices")
 public class Device {
 	public enum Type {
-		NA, Electric, Mechanic, Accessoire
+		NA (""), Electric ("Elektrogerät"), Mechanic ("Mechanikteil"), Accessoire ("Zubehör");
+		private String entry;
+		private Type(String entry) { this.entry = entry; }
+		@Override
+		public String toString() { return this.entry; }
 	}
 	public enum Protection {
-		NA, Class1, Class2
+		NA (""), Class1 ("Schutzklasse 1"), Class2 ("Schutzklasse 2");
+		private String entry;
+		private Protection(String entry) { this.entry = entry; }
+		@Override
+		public String toString() { return this.entry; }
 	}
-	
 	private int id;
+	private String name;
 	private String serialnr;
 	private String unitnr;
 	private Device.Type type;
@@ -27,6 +37,7 @@ public class Device {
 
 	public Device() {
 		id = 0;
+		name = "";
 		serialnr = "";
 		unitnr = "";
 		type = Type.NA;
@@ -39,16 +50,25 @@ public class Device {
 		storageunitid = 0;
 	}
 	
-	@DbFieldGetter(name="id", constraint="PRIMARY KEY")
+	@DbFieldGetter(name="deviceid", title="Id", visibility=false, constraint="PRIMARY KEY")
 	public int getId() {
 		return id;
 	}
-	@DbFieldSetter(name="id")
+	@DbFieldSetter(name="deviceid")
 	public void setId(int id) {
 		this.id = id;
 	}
 	
-	@DbFieldGetter(name="serialnr")
+	@DbFieldGetter(name="name", title="Name")
+	public String getName() {
+		return this.name;
+	}
+	@DbFieldSetter(name="name")
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	@DbFieldGetter(name="serialnr", title="Serien-Nr.")
 	public String getSerialnr() {
 		return serialnr;
 	}
@@ -57,7 +77,7 @@ public class Device {
 		this.serialnr = serialnr;
 	}
 
-	@DbFieldGetter(name="unitnr")
+	@DbFieldGetter(name="unitnr", title="Teile-Nr.")
 	public String getUnitnr() {
 		return unitnr;
 	}
@@ -66,7 +86,7 @@ public class Device {
 		this.unitnr = unitnr;
 	}
 
-	@DbFieldGetter(name="type")
+	@DbFieldGetter(name="type", title="Gerätetyp")
 	public int getTypeDb() {
 		return type.ordinal();
 	}
@@ -81,7 +101,7 @@ public class Device {
 		this.type = type;
 	}
 
-	@DbFieldGetter(name="description")
+	@DbFieldGetter(name="description", title="Beschreibung")
 	public String getDescription() {
 		return description;
 	}
@@ -90,7 +110,7 @@ public class Device {
 		this.description = description;
 	}
 
-	@DbFieldGetter(name="manufacturer")
+	@DbFieldGetter(name="manufacturer", title="Hersteller")
 	public String getManufacturer() {
 		return manufacturer;
 	}
@@ -99,7 +119,7 @@ public class Device {
 		this.manufacturer = manufacturer;
 	}
 
-	@DbFieldGetter(name="protection")
+	@DbFieldGetter(name="protection", title="Schutzklasse")
 	public int getProtectionDb() {
 		return protection.ordinal();
 	}
@@ -114,7 +134,7 @@ public class Device {
 		this.protection = protection;
 	}
 
-	@DbFieldGetter(name="locationid")
+	@DbFieldGetter(name="locationid", visibility=false, title="LagerId")
 	public int getLocationid() {
 		return locationid;
 	}
@@ -123,7 +143,7 @@ public class Device {
 		this.locationid = locationid;
 	}
 
-	@DbFieldGetter(name="interval")
+	@DbFieldGetter(name="interval", title="Prüfintervall")
 	public int getInterval() {
 		return interval;
 	}
@@ -132,7 +152,7 @@ public class Device {
 		this.interval = interval;
 	}
 
-	@DbFieldGetter(name="projectid")
+	@DbFieldGetter(name="projectid", visibility=false, title="ProjektId")
 	public int getProjectid() {
 		return projectid;
 	}
@@ -141,7 +161,7 @@ public class Device {
 		this.projectid = projectid;
 	}
 
-	@DbFieldGetter(name="storageunitid")
+	@DbFieldGetter(name="storageunitid", visibility=false, title="LagereinheitId")
 	public int getStorageunitid() {
 		return storageunitid;
 	}
@@ -170,6 +190,5 @@ public class Device {
 			return false;
 		return true;
 	}
-	
-	
+
 }

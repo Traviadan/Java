@@ -29,6 +29,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 
+import de.awi.catalog.gui.DeviceSplitPane;
 import de.awi.catalog.models.DeviceModel;
 import de.traviadan.lib.db.Db;
 import de.traviadan.lib.gui.GuiFactory;
@@ -70,6 +71,7 @@ public class MainWindow extends WindowFrame{
 		log.msg("Initialisierung");
 		db = new Db("catalog.db");
 		deviceTable = new DeviceModel();
+		deviceTable.createDbTable(db);
 		init();
 	}
 	
@@ -187,45 +189,18 @@ public class MainWindow extends WindowFrame{
 		JPanel panel2 = new JPanel();
 		panel2.setLayout(new BorderLayout(5, 5));
 
-		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-		JPanel panel3 = new JPanel();
-		panel3.setLayout(new BorderLayout(5, 5));
-		initTableDevice(panel3);
-		
-		splitPane.add(panel3);
-		JPanel panel4 = new JPanel();
-		panel4.setLayout(new BorderLayout(5, 5));
-		splitPane.add(panel4);
+		/*
+		 * SplitPane mit DeviceTable links und Eingabefeldern rechts
+		 */
+		DeviceSplitPane devicePane = new DeviceSplitPane(db);
 
 		tabbedPane.addTab("Tab 1", panel1);
 		tabbedPane.addTab("Tab 2", panel2);
-		tabbedPane.addTab("Tab 3", splitPane);
+		tabbedPane.addTab("Tab 3", devicePane);
 		add(tabbedPane);
 	}
 	
-	private void initTableDevice(JComponent cmp) {
-		/*
-		String[][] rowData = {
-				{ "Japan", "245" }, { "USA", "240" }, { "Italien", "220" },
-			    { "Spanien", "217" }, {"Türkei", "215"} ,{ "England", "214" },
-			    { "Frankreich", "190" }, {"Griechenland", "185" },
-			    { "Deutschland", "180" }, {"Portugal", "170" }
-		};
-
-		String[] columnNames = {
-				"Land", "Durchschnittliche Fernsehdauer pro Tag in Minuten"
-		};
-
-		JTable table = new JTable(rowData, columnNames);
-		*/
-		
-		DeviceModel deviceModel = new DeviceModel();
-		DeviceTable table = new DeviceTable();
-		cmp.add(new JScrollPane(table));
-		deviceModel.populate(db);
-		table.setModel(deviceModel);
-		table.setColWidths();
-	}
+	
 	
 	private void showOptionDialog() {
 	    final JCheckBox check = new JCheckBox("Tick me");

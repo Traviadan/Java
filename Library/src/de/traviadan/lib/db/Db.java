@@ -10,12 +10,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Db {
+	public static final String NAME = "name";
+	public static final String CONSTRAINT = "constraint";
+	public static final String TYPE = "type";
+	public static final String TITLE = "title";
+	public static final String VISIBILITY = "visibility";
+	public static final String GETTER = "getter";
+	public static final String SETTER = "setter";
+	
 	private String name;
 	
 	public Db() {
@@ -47,7 +56,7 @@ public class Db {
 		}
 	}
 
-	public void createTable(String tableName, List<String> columns, List<Class<?>> types) {
+	public void createTable(String tableName, List<String> columns, List<Class<?>> types, List<String> constraints) {
 		if (tableName.isBlank() || columns.size() == 0) return;
 		
 		// SQL statement for creating a new table
@@ -57,20 +66,20 @@ public class Db {
 
 		Iterator<String> itColumns = columns.listIterator();
 		Iterator<Class<?>> itTypes = types.listIterator();
+		Iterator<String> itContraints = constraints.listIterator();
 		while(itColumns.hasNext()) {
 			String cName = itColumns.next();
 			sb.append(cName).append(' ');
 			Class<?> cTypeClass = itTypes.next();
+			String cConstraint = itContraints.next();
 			if (cTypeClass.getSimpleName().equals("int")) {
 				sb.append("INTEGER");
-				if (cName.equals("id")) {
-					sb.append(" PRIMARY KEY");
-				}
 			} else if (cTypeClass.getSimpleName().equals("String")) {
 				sb.append("TEXT");
 			} else {
 				sb.append("NULL");
 			}
+			sb.append(" " + cConstraint);
 			if (itColumns.hasNext()) sb.append(", ");
 		}
 		sb.append(");");
@@ -85,8 +94,8 @@ public class Db {
 		executeStatement(sql);
 	}
 	
-	public int selectLastId(String tableName) {
-		String sql = String.format("SELECT MAX(id) FROM %s", tableName);
+	public int selectLastId(String tableName, String primaryField) {
+		String sql = String.format("SELECT MAX(%s) FROM %s", primaryField, tableName);
         int maxId = 0;
         try (Connection conn = this.connect();
              Statement stmt  = conn.createStatement();
@@ -94,24 +103,101 @@ public class Db {
             
             // loop through the result set
             while (rs.next()) {
-            	maxId = rs.getInt("MAX(id)");
+            	maxId = rs.getInt(String.format("MAX(%s)", primaryField));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         return maxId;
 	}
-	
-	public List<Map<String, Object>> selectAll(String tableName, Map<String, Class<?>> columns) {
-		StringBuilder sb = new StringBuilder("Select ");
+
+	private void appendColumns(Map<String, Class<?>> columns, String alias, StringBuilder sb) {
 		Iterator<String> itColumns = columns.keySet().iterator();
 		while(itColumns.hasNext()) {
-			sb.append(itColumns.next());
+			sb.append(String.format("%s%s", alias, itColumns.next()));
 			if (itColumns.hasNext()) {
 				sb.append(", ");
 			}
 		}
-		sb.append(" FROM ").append(tableName);
+	}
+	private void appendColumns(Map<String, Class<?>> columns, StringBuilder sb) {
+		appendColumns(columns, "", sb);
+	}
+
+	public static Map<String, Map<String, Object>> getColumnProperties(Class<?> c) {
+		Map<String, Map<String, Object>> columns = new LinkedHashMap<>();
+		for (Method m: c.getMethods()) {
+			Map<String, Object> props = new HashMap<>();
+			if (m.isAnnotationPresent(DbFieldGetter.class)) {
+				String name = m.getAnnotation(DbFieldGetter.class).name();
+				if (columns.containsKey(name)) props = columns.get(name);
+				props.put(NAME, m.getAnnotation(DbFieldGetter.class).name());
+				props.put(CONSTRAINT, m.getAnnotation(DbFieldGetter.class).constraint());
+				props.put(TITLE, m.getAnnotation(DbFieldGetter.class).title());
+				props.put(VISIBILITY, m.getAnnotation(DbFieldGetter.class).visibility());
+				props.put(TYPE, m.getReturnType());
+				props.put(GETTER, m);
+				columns.put(m.getAnnotation(DbFieldGetter.class).name(), props);
+			} else if (m.isAnnotationPresent(DbFieldSetter.class)) {
+				String name = m.getAnnotation(DbFieldSetter.class).name();
+				if (columns.containsKey(name)) props = columns.get(name);
+				props.put(NAME, m.getAnnotation(DbFieldSetter.class).name());
+				props.put(SETTER, m);
+				columns.put(m.getAnnotation(DbFieldSetter.class).name(), props);
+			}
+		}
+		return columns;
+	}
+	
+	public static String getTableName(Class<?> c) {
+		if (c.isAnnotationPresent(DbTableName.class)) {
+			return c.getAnnotation(DbTableName.class).name();
+		} else {
+			return "";
+		}
+	}
+	
+	public List<Map<String, Object>> innerJoin(String tableName, Map<String, Class<?>> columns, Map<String, Class<?>> joins) {
+		StringBuilder sb = new StringBuilder("Select ");
+		String joinName = "";
+		String using = "";
+		appendColumns(columns, String.format("%s.", tableName), sb);
+		for (Map.Entry<String, Class<?>> joinEntry: joins.entrySet()) {
+			joinName = Db.getTableName(joinEntry.getValue());
+			using = joinEntry.getKey();
+			Map<String, Class<?>> joinColumns = new LinkedHashMap<>();
+			for (Map.Entry<String, Map<String, Object>> propEntry: Db.getColumnProperties(joinEntry.getValue()).entrySet()) {
+				joinColumns.put(propEntry.getKey(), (Class<?>)propEntry.getValue().get(Db.TYPE));
+			}
+			sb.append(", ");
+			appendColumns(joinColumns, String.format("%s.", joinName), sb);
+		}
+		sb.append(String.format(" FROM %s ", tableName));
+		sb.append(String.format("INNER JOIN %s USING(%s)", joinName, using));
+		
+		List<Map<String, Object>> rsData = new ArrayList<>();
+        try (Connection conn = this.connect();
+             Statement stmt  = conn.createStatement();
+             ResultSet rs    = stmt.executeQuery(sb.toString())){
+        	
+        	while (rs.next()) {
+        		Map<String, Object> eData = new LinkedHashMap<>();
+        		for (Map.Entry<String, Class<?>> entry: columns.entrySet()) {
+					eData.put(entry.getKey(), rs.getObject(entry.getKey()));
+				}
+        		rsData.add(eData);
+			}
+            return rsData;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+	}
+	
+	public List<Map<String, Object>> selectAll(String tableName, Map<String, Class<?>> columns) {
+		StringBuilder sb = new StringBuilder("Select ");
+		appendColumns(columns, sb);
+		sb.append(String.format(" FROM %s ", tableName));
 		
 		List<Map<String, Object>> rsData = new ArrayList<>();
         try (Connection conn = this.connect();
@@ -158,13 +244,13 @@ public class Db {
 				if (entry.getValue().getSimpleName().equals("int")) {
 					int iVal = (int)val;
 					if(constraint != null && constraint.equals("PRIMARY KEY") && iVal == 0) {
-						iVal = selectLastId(tableName) + 1;
-						pstmt.setInt(idx, iVal);
-					} else if (entry.getValue().getSimpleName().equals("String")) {
-						pstmt.setString(idx, (String)val);
-					} else {
-						pstmt.setNull(idx, java.sql.Types.NULL);
+						iVal = selectLastId(tableName, entry.getKey()) + 1;
 					}
+					pstmt.setInt(idx, iVal);
+				} else if (entry.getValue().getSimpleName().equals("String")) {
+					pstmt.setString(idx, (String)val);
+				} else {
+					pstmt.setNull(idx, java.sql.Types.NULL);
 				}
 			}
             pstmt.executeUpdate();
@@ -226,8 +312,8 @@ public class Db {
         }
 	}
 	
-	public void delete(String tableName, int id) {
-		String sql = String.format("DELETE FROM %s WHERE id = ?", tableName);
+	public void delete(String tableName, String primaryField, int id) {
+		String sql = String.format("DELETE FROM %s WHERE %s = ?", tableName, primaryField);
 
         try (Connection conn = this.connect();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {

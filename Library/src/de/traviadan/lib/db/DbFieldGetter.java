@@ -7,5 +7,8 @@ import java.lang.annotation.Target;
 @Target( java.lang.annotation.ElementType.METHOD )
 public @interface DbFieldGetter {
 	String name();
+	String title();
+	String join() default "";
 	String constraint() default "";
+	boolean visibility() default true;
 }
