@@ -5,9 +5,22 @@ import de.traviadan.lib.db.DbTableJoin;
 import de.traviadan.lib.db.DbFieldSetter;
 import de.traviadan.lib.db.DbTableName;
 
-@DbTableJoin(table = StorageUnit.class, using="storageunitid")
+@DbTableJoin(table = {StorageUnit.class}, using= {"storageunitid"})
 @DbTableName(name="devices")
 public class Device {
+	public static final String ID = "deviceid";
+	public static final String NAME = "name";
+	public static final String DESCRIPTION = "description";
+	public static final String SERIALNR = "serialnr";
+	public static final String UNITNR = "unitnr";
+	public static final String TYPE = "type";
+	public static final String MANUFACTURER = "manufacturer";
+	public static final String PROTECTION = "protection";
+	public static final String LOCATIONID = "locationid";
+	public static final String INTERVAL = "interval";
+	public static final String PROJECTID = "projectid";
+	public static final String STORAGEUNITID = "storageunitid";
+
 	public enum Type {
 		NA (""), Electric ("Elektrogerät"), Mechanic ("Mechanikteil"), Accessoire ("Zubehör");
 		private String entry;
@@ -50,50 +63,50 @@ public class Device {
 		storageunitid = 0;
 	}
 	
-	@DbFieldGetter(name="deviceid", title="Id", visibility=false, constraint="PRIMARY KEY")
+	@DbFieldGetter(name=ID, title="Id", visibility=false, constraint="PRIMARY KEY")
 	public int getId() {
 		return id;
 	}
-	@DbFieldSetter(name="deviceid")
+	@DbFieldSetter(name=ID)
 	public void setId(int id) {
 		this.id = id;
 	}
 	
-	@DbFieldGetter(name="name", title="Name")
+	@DbFieldGetter(name=NAME, title="Name")
 	public String getName() {
 		return this.name;
 	}
-	@DbFieldSetter(name="name")
+	@DbFieldSetter(name=NAME)
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	@DbFieldGetter(name="serialnr", title="Serien-Nr.")
+	@DbFieldGetter(name=SERIALNR, title="Serien-Nr.")
 	public String getSerialnr() {
 		return serialnr;
 	}
-	@DbFieldSetter(name="serialnr")
+	@DbFieldSetter(name=SERIALNR)
 	public void setSerialnr(String serialnr) {
 		this.serialnr = serialnr;
 	}
 
-	@DbFieldGetter(name="unitnr", title="Teile-Nr.")
+	@DbFieldGetter(name=UNITNR, title="Teile-Nr.")
 	public String getUnitnr() {
 		return unitnr;
 	}
-	@DbFieldSetter(name="unitnr")
+	@DbFieldSetter(name=UNITNR)
 	public void setUnitnr(String unitnr) {
 		this.unitnr = unitnr;
 	}
 
-	@DbFieldGetter(name="type", title="Gerätetyp")
+	@DbFieldGetter(name=TYPE, title="Gerätetyp")
 	public int getTypeDb() {
 		return type.ordinal();
 	}
 	public Device.Type getType() {
 		return type;
 	}
-	@DbFieldSetter(name="type")
+	@DbFieldSetter(name=TYPE)
 	public void setTypeDb(int ord) {
 		this.type = Device.Type.values()[ord];
 	}
@@ -101,32 +114,32 @@ public class Device {
 		this.type = type;
 	}
 
-	@DbFieldGetter(name="description", title="Beschreibung")
+	@DbFieldGetter(name=DESCRIPTION, title="Beschreibung")
 	public String getDescription() {
 		return description;
 	}
-	@DbFieldSetter(name="description")
+	@DbFieldSetter(name=DESCRIPTION)
 	public void setDescription(String description) {
 		this.description = description;
 	}
 
-	@DbFieldGetter(name="manufacturer", title="Hersteller")
+	@DbFieldGetter(name=MANUFACTURER, title="Hersteller")
 	public String getManufacturer() {
 		return manufacturer;
 	}
-	@DbFieldSetter(name="manufacturer")
+	@DbFieldSetter(name=MANUFACTURER)
 	public void setManufacturer(String manufacturer) {
 		this.manufacturer = manufacturer;
 	}
 
-	@DbFieldGetter(name="protection", title="Schutzklasse")
+	@DbFieldGetter(name=PROTECTION, title="Schutzklasse")
 	public int getProtectionDb() {
 		return protection.ordinal();
 	}
 	public Device.Protection getProtection() {
 		return protection;
 	}
-	@DbFieldSetter(name="protection")
+	@DbFieldSetter(name=PROTECTION)
 	public void setProtectionDb(int ord) {
 		this.protection = Device.Protection.values()[ord];
 	}
@@ -134,38 +147,38 @@ public class Device {
 		this.protection = protection;
 	}
 
-	@DbFieldGetter(name="locationid", visibility=false, title="LagerId")
+	@DbFieldGetter(name=LOCATIONID, visibility=false, title="LagerId")
 	public int getLocationid() {
 		return locationid;
 	}
-	@DbFieldSetter(name="locationid")
+	@DbFieldSetter(name=LOCATIONID)
 	public void setLocationid(int locationid) {
 		this.locationid = locationid;
 	}
 
-	@DbFieldGetter(name="interval", title="Prüfintervall")
+	@DbFieldGetter(name=INTERVAL, title="Prüfintervall")
 	public int getInterval() {
 		return interval;
 	}
-	@DbFieldSetter(name="interval")
+	@DbFieldSetter(name=INTERVAL)
 	public void setInterval(int interval) {
 		this.interval = interval;
 	}
 
-	@DbFieldGetter(name="projectid", visibility=false, title="ProjektId")
+	@DbFieldGetter(name=PROJECTID, visibility=false, title="ProjektId")
 	public int getProjectid() {
 		return projectid;
 	}
-	@DbFieldSetter(name="projectid")
+	@DbFieldSetter(name=PROJECTID)
 	public void setProjectid(int projectid) {
 		this.projectid = projectid;
 	}
 
-	@DbFieldGetter(name="storageunitid", visibility=false, title="LagereinheitId")
+	@DbFieldGetter(name=STORAGEUNITID, visibility=false, title="LagereinheitId")
 	public int getStorageunitid() {
 		return storageunitid;
 	}
-	@DbFieldSetter(name="storageunitid")
+	@DbFieldSetter(name=STORAGEUNITID)
 	public void setStorageunitid(int storageunitid) {
 		this.storageunitid = storageunitid;
 	}

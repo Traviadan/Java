@@ -5,13 +5,12 @@ import java.util.Map;
 import de.traviadan.lib.db.Db;
 import de.traviadan.lib.db.DbTableModel;
 
-public class DeviceModel extends DbTableModel {
+public class PartModel extends DbTableModel {
 	private static final long serialVersionUID = 1L;
 	
 	public enum Fields {
-		Id (Device.ID), Name (Device.NAME), Description (Device.DESCRIPTION), Manufacturer (Device.MANUFACTURER), UnitNr (Device.UNITNR),
-		SerialNr (Device.SERIALNR), Type(Device.TYPE), Protection(Device.PROTECTION), Interval(Device.INTERVAL), StorageunitId (Device.STORAGEUNITID),
-		ProjectId (Device.PROJECTID), LocationId (Device.LOCATIONID);
+		Id (Part.ID), Name (Part.NAME), Description (Part.DESCRIPTION), Manufacturer (Part.MANUFACTURER), PartNr (Part.PARTNR),
+		SerialNr (Part.SERIALNR), Type(Part.TYPE), StorageunitId (Part.STORAGEUNITID);
 		
 		private String name;
 		private Fields(String name) {
@@ -22,8 +21,8 @@ public class DeviceModel extends DbTableModel {
 		}
 	}
 	
-	public DeviceModel() {
-		super(Device.class);
+	public PartModel() {
+		super(Part.class);
 	}
 
 	@Override

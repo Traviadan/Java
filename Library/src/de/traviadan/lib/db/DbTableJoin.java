@@ -6,6 +6,6 @@ import java.lang.annotation.Target;
 @Retention( value = java.lang.annotation.RetentionPolicy.RUNTIME )
 @Target( java.lang.annotation.ElementType.TYPE )
 public @interface DbTableJoin {
-	Class<?> table();
-	String using();
+	Class<?>[] table();
+	String[] using();
 }

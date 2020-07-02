@@ -3,19 +3,18 @@ package de.awi.catalog;
 import java.util.Vector;
 
 import javax.swing.JTable;
+import de.awi.catalog.models.StorageUnitModel;
 
-import de.awi.catalog.models.DeviceModel;
-
-public class DeviceTable extends AbstractTable {
+public class StorageUnitTable extends AbstractTable {
 	private static final long serialVersionUID = 1L;
 
-	public DeviceTable() {
+	public StorageUnitTable() {
 		super();
 		setRowSelectionAllowed(true);
 	}
 	
 	public void setupColumns() {
-		DeviceModel model = (DeviceModel)getModel();
+		StorageUnitModel model = (StorageUnitModel)getModel();
 		Vector<Boolean> vis = model.getColumnVisibilities();
 		
 		for (String name: model.getColumnNames()) {

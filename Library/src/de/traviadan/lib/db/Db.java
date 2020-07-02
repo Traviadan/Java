@@ -259,10 +259,10 @@ public class Db {
 		}
 	}
 	
-	public void update(String tableName, Map<String, Class<?>> columns, Map<String, String> constraints, Map<String, Object> values) {
+	public void update(String tableName, Map<String, Class<?>> columns, Map<String, String> constraints, Map<String, Object> values, String primaryField) {
 		StringBuilder sb = new StringBuilder(
 				String.format("UPDATE %s SET", tableName));
-		String where = " WHERE id = ?";
+		String where = String.format(" WHERE %s = ?", primaryField);
 		
 		Iterator<String> itColumns = columns.keySet().iterator();
 		while (itColumns.hasNext()) {

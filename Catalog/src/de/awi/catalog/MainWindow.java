@@ -30,7 +30,10 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 
 import de.awi.catalog.gui.DeviceSplitPane;
+import de.awi.catalog.gui.StorageUnitSplitPane;
 import de.awi.catalog.models.DeviceModel;
+import de.awi.catalog.models.PartModel;
+import de.awi.catalog.models.StorageUnitModel;
 import de.traviadan.lib.db.Db;
 import de.traviadan.lib.gui.GuiFactory;
 import de.traviadan.lib.gui.WindowFrame;
@@ -47,7 +50,9 @@ public class MainWindow extends WindowFrame{
 	private AppProps props;
 	private Log log;
 	private Db db;
-	private DeviceModel deviceTable;
+	private DeviceModel deviceModel;
+	private PartModel partModel;
+	private StorageUnitModel storageUnitModel;
 	
 	public MainWindow() {
 		super();
@@ -70,8 +75,13 @@ public class MainWindow extends WindowFrame{
 		}
 		log.msg("Initialisierung");
 		db = new Db("catalog.db");
-		deviceTable = new DeviceModel();
-		deviceTable.createDbTable(db);
+		deviceModel = new DeviceModel();
+		deviceModel.createDbTable(db);
+		partModel = new PartModel();
+		partModel.createDbTable(db);
+		storageUnitModel = new StorageUnitModel();
+		storageUnitModel.createDbTable(db);
+		
 		init();
 	}
 	
@@ -186,16 +196,11 @@ public class MainWindow extends WindowFrame{
 		panel1.setLayout(new BorderLayout(5, 5));
 		panel1.add(GuiFactory.getButton("Test", null), BorderLayout.PAGE_START);
 		
-		JPanel panel2 = new JPanel();
-		panel2.setLayout(new BorderLayout(5, 5));
-
-		/*
-		 * SplitPane mit DeviceTable links und Eingabefeldern rechts
-		 */
 		DeviceSplitPane devicePane = new DeviceSplitPane(db);
+		StorageUnitSplitPane storageUnitPane = new StorageUnitSplitPane(db);
 
 		tabbedPane.addTab("Tab 1", panel1);
-		tabbedPane.addTab("Tab 2", panel2);
+		tabbedPane.addTab("Tab 2", storageUnitPane);
 		tabbedPane.addTab("Tab 3", devicePane);
 		add(tabbedPane);
 	}

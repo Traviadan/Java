@@ -36,6 +36,27 @@ public class DbTableModel extends AbstractTableModel {
 		initTableName();
 		initColumns();
 	}
+
+	@Override
+	public int findColumn(String name) {
+		int found = -1;
+		int idx = 0;
+		for (String colName: properties.keySet()) {
+			if (colName.equals(name)) {
+				found = idx;
+				break;
+			}
+			idx++;
+		}
+		return found;
+	}
+	
+	@Override
+	public String getColumnName(int column) {
+		String columnName = (String)columns.keySet().toArray()[column];
+		Map<String, Object> prop = properties.get(columnName);
+		return (String)prop.get(Db.TITLE);
+	}
 	
 	public Vector<String> getColumnNames() {
 		Vector<String> cols = new Vector<>();
@@ -151,9 +172,11 @@ public class DbTableModel extends AbstractTableModel {
 			tableName = thisClass.getAnnotation(DbTableName.class).name();
 		}
 		if (thisClass.isAnnotationPresent(DbTableJoin.class)) {
-			Class<?> joinClass = thisClass.getAnnotation(DbTableJoin.class).table();
-			String nameUsing = thisClass.getAnnotation(DbTableJoin.class).using();
-			joins.put(nameUsing, joinClass);
+			Class<?>[] joinClass = thisClass.getAnnotation(DbTableJoin.class).table();
+			String[] nameUsing = thisClass.getAnnotation(DbTableJoin.class).using();
+			for (int i = 0; i < joinClass.length; i++) {
+				joins.put(nameUsing[i], joinClass[i]);
+			}
 		}
 	}
 
@@ -194,7 +217,7 @@ public class DbTableModel extends AbstractTableModel {
 	}
 	
 	public void update(Db db, Object dataObj) {
-		db.update(tableName, columns, constraints, getValues(dataObj));
+		db.update(tableName, columns, constraints, getValues(dataObj), primaryField);
 	}
 
 	public void delete(Db db, Object dataObj) {
