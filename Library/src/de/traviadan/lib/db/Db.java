@@ -114,7 +114,12 @@ public class Db {
 	private void appendColumns(Map<String, Class<?>> columns, String alias, StringBuilder sb) {
 		Iterator<String> itColumns = columns.keySet().iterator();
 		while(itColumns.hasNext()) {
-			sb.append(String.format("%s%s", alias, itColumns.next()));
+			String colName = itColumns.next();
+			if (!alias.isBlank()) {
+				sb.append(String.format("%s.%s AS %s_%s", alias, colName, alias, colName));
+			} else {
+				sb.append(colName);
+			}
 			if (itColumns.hasNext()) {
 				sb.append(", ");
 			}
@@ -157,11 +162,11 @@ public class Db {
 		}
 	}
 	
-	public List<Map<String, Object>> innerJoin(String tableName, Map<String, Class<?>> columns, Map<String, Class<?>> joins) {
+	public List<Map<String, Object>> leftJoin(String tableName, Map<String, Class<?>> columns, Map<String, Class<?>> joins) {
 		StringBuilder sb = new StringBuilder("Select ");
 		String joinName = "";
 		String using = "";
-		appendColumns(columns, String.format("%s.", tableName), sb);
+		appendColumns(columns, sb);
 		for (Map.Entry<String, Class<?>> joinEntry: joins.entrySet()) {
 			joinName = Db.getTableName(joinEntry.getValue());
 			using = joinEntry.getKey();
@@ -170,11 +175,12 @@ public class Db {
 				joinColumns.put(propEntry.getKey(), (Class<?>)propEntry.getValue().get(Db.TYPE));
 			}
 			sb.append(", ");
-			appendColumns(joinColumns, String.format("%s.", joinName), sb);
+			appendColumns(joinColumns, joinName, sb);
 		}
 		sb.append(String.format(" FROM %s ", tableName));
-		sb.append(String.format("INNER JOIN %s USING(%s)", joinName, using));
+		sb.append(String.format("LEFT JOIN %s ON %s_%s = %s_%s", joinName, tableName, using, joinName, using));
 		
+		System.out.println(sb.toString());
 		List<Map<String, Object>> rsData = new ArrayList<>();
         try (Connection conn = this.connect();
              Statement stmt  = conn.createStatement();
@@ -183,13 +189,26 @@ public class Db {
         	while (rs.next()) {
         		Map<String, Object> eData = new LinkedHashMap<>();
         		for (Map.Entry<String, Class<?>> entry: columns.entrySet()) {
-					eData.put(entry.getKey(), rs.getObject(entry.getKey()));
+        			String colName = String.format("%s_%s", tableName, entry.getKey());
+					eData.put(colName, rs.getObject(entry.getKey()));
 				}
+        		for (Map.Entry<String, Class<?>> joinEntry: joins.entrySet()) {
+        			joinName = Db.getTableName(joinEntry.getValue());
+        			Map<String, Class<?>> joinColumns = new LinkedHashMap<>();
+        			for (Map.Entry<String, Map<String, Object>> propEntry: Db.getColumnProperties(joinEntry.getValue()).entrySet()) {
+        				joinColumns.put(propEntry.getKey(), (Class<?>)propEntry.getValue().get(Db.TYPE));
+        			}
+            		for (Map.Entry<String, Class<?>> entry: joinColumns.entrySet()) {
+            			String colName = String.format("%s_%s", joinName, entry.getKey());
+    					eData.put(colName, rs.getObject(entry.getKey()));
+    				}
+        		}
         		rsData.add(eData);
 			}
+        	System.out.println("rsData:" + rsData.get(0));
             return rsData;
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            System.out.println("LeftJoin Exception: " + e.getMessage());
         }
         return null;
 	}

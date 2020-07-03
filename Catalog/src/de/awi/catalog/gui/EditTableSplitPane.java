@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import javax.swing.event.EventListenerList;
 
 import de.awi.catalog.AbstractTable;
 import de.traviadan.lib.db.Db;
@@ -28,15 +29,24 @@ public class EditTableSplitPane extends JSplitPane {
 	protected JButton btnUpdate = new JButton("Insert");
 	protected JButton btnReset = new JButton("Reset");
 	protected JButton btnDelete = new JButton("Delete");
-
+	protected JScrollPane scrollPane;
+	
 	public EditTableSplitPane(Db db, int split) {
 		super(split);
 		this.db = db;
 		id = 0;
 	}
 	
+	public JScrollPane getScrollPane() {
+		return scrollPane;
+	}
+
+	public AbstractTable getTable() {
+		return table;
+	}
+	
 	protected void initTable(JComponent cmp) {
-		JScrollPane scrollPane = new JScrollPane(table);
+		scrollPane = new JScrollPane(table);
 		cmp.add(scrollPane);
 		model.populate(db);
 		table.setModel(model);

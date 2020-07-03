@@ -12,14 +12,21 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
 
+import de.awi.catalog.DeviceTable;
 import de.awi.catalog.StorageUnitTable;
+import de.awi.catalog.events.StockpilingEvent;
+import de.awi.catalog.interfaces.StockpilingListener;
+import de.awi.catalog.models.Device;
+import de.awi.catalog.models.DeviceModel;
 import de.awi.catalog.models.StorageUnit;
 import de.awi.catalog.models.StorageUnitModel;
 import de.traviadan.lib.db.Db;
+import de.traviadan.lib.db.DbTableModel;
 import de.traviadan.lib.helper.Check;
 
-public class StorageUnitSplitPane extends EditTableSplitPane {
+public class StorageUnitSplitPane extends EditTableSplitPane implements StockpilingListener {
 
 	private static final long serialVersionUID = 1L;
 
@@ -168,6 +175,23 @@ public class StorageUnitSplitPane extends EditTableSplitPane {
 		txtWeight.setText(""+obj.getWeight());
 		cmbType.setSelectedIndex(obj.getType().ordinal());
 		updateButtons();
+	}
+
+	@Override
+	public void updateStorage(StockpilingEvent event) {
+		if (event.getStockpilingObject() instanceof Device) {
+			Device d = Device.class.cast(event.getStockpilingObject());
+			if (getTable().getSelectedRow() >= 0) {
+				StorageUnit storageUnit = StorageUnit.class.cast(model.getObjectAtRow(getTable().getSelectedRow()));
+				d.setStorageunitid(storageUnit.getId());
+				DeviceTable table = DeviceTable.class.cast(event.getSource());
+				DbTableModel model = DbTableModel.class.cast(table.getModel());
+				model.update(db, d);
+				model.populate(db, true);
+				model.fireTableDataChanged();
+				
+			}
+		}
 	}
 
 }

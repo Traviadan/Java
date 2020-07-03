@@ -98,7 +98,6 @@ public class MainWindow extends WindowFrame{
 	    //setVisible(true);
 
 	    initMenuBar();
-	    initPopupMenu();
 	    initContent();
 	    
 	    log.msg(this.loadFileToString());
@@ -155,7 +154,7 @@ public class MainWindow extends WindowFrame{
         setJMenuBar(menuBar);
     }
 	
-	private void initPopupMenu() {
+	private void addPopupMenu(JComponent cmp) {
         popupMenu = new JPopupMenu();
 
         JMenuItem maximizeMenuItem = new JMenuItem("Maximize");
@@ -173,11 +172,9 @@ public class MainWindow extends WindowFrame{
 
         popupMenu.add(quitMenuItem);
 
-        addMouseListener(new MouseAdapter() {
-
+        cmp.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-
                 if (getExtendedState() != JFrame.MAXIMIZED_BOTH) {
                     maximizeMenuItem.setEnabled(true);
                 }
@@ -191,17 +188,18 @@ public class MainWindow extends WindowFrame{
 	
 	private void initContent() {
 		JTabbedPane tabbedPane = new JTabbedPane();
-		
 		JPanel panel1 = new JPanel();
 		panel1.setLayout(new BorderLayout(5, 5));
 		panel1.add(GuiFactory.getButton("Test", null), BorderLayout.PAGE_START);
 		
 		DeviceSplitPane devicePane = new DeviceSplitPane(db);
 		StorageUnitSplitPane storageUnitPane = new StorageUnitSplitPane(db);
-
+		DeviceTable.class.cast(devicePane.getTable()).addStockpilingListener(storageUnitPane);
+		
 		tabbedPane.addTab("Tab 1", panel1);
 		tabbedPane.addTab("Tab 2", storageUnitPane);
 		tabbedPane.addTab("Tab 3", devicePane);
+		
 		add(tabbedPane);
 	}
 	

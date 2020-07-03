@@ -25,6 +25,8 @@ public class DbTableModel extends AbstractTableModel {
 	protected Map<String, Method> getter = new LinkedHashMap<>();
 	protected Map<String, Method> setter = new LinkedHashMap<>();
 	protected List<Object> data = new ArrayList<>();
+	protected Map<Class<?>, List<Map<String, Object>>> joinedData = new HashMap<>();
+	
 	protected String primaryField;
 	
 	public DbTableModel() {
@@ -92,7 +94,22 @@ public class DbTableModel extends AbstractTableModel {
 
 	public void populate(Db db, boolean join) {
 		if (join && joins.size() > 0) {
-			List<Map<String, Object>> rsData = db.innerJoin(tableName, columns, joins);
+			List<Map<String, Object>> rsData = db.leftJoin(tableName, columns, joins);
+			for (Class<?> joinClass : joins.values()) {
+				String joinTableName = joinClass.getAnnotation(DbTableName.class).name();
+				List<Map<String, Object>> l = new ArrayList<>(); 
+				for (Map<String, Object> row : rsData) {
+					System.out.println(row);
+					Map<String, Object> jd = new HashMap<>();
+					for (Map.Entry<String, Object> e : row.entrySet()) {
+						if (e.getKey().startsWith(joinTableName+".")) {
+							jd.put(e.getKey(), e.getValue());
+						}
+					}
+					l.add(jd);
+				}
+				joinedData.put(joinClass, l);
+			}
 			populate(rsData);
 		} else {
 			populate(db);
@@ -106,6 +123,11 @@ public class DbTableModel extends AbstractTableModel {
 	
 	public void populate(List<Map<String, Object>> rsData) {
 		data.clear();
+		boolean joined = false;
+		String colName = "";
+		if (joinedData.size() > 0) {
+			joined = true;
+		}
 		Constructor<?> c = null;
 		try {
 			c = thisClass.getConstructor();
@@ -124,23 +146,30 @@ public class DbTableModel extends AbstractTableModel {
 			}
 			if (obj != null ) {
 				for (Map.Entry<String, Class<?>> entry: columns.entrySet()) {
-					if (entry.getValue().getSimpleName().equals("int")) {
-						int value = (int)eData.get(entry.getKey());
-						Method m = setter.get(entry.getKey());
-						try {
-							m.invoke(obj, value);
-						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+					if (setter.containsKey(colName)) {
+						if (joined) {
+							colName = String.format("%s.%s", tableName, entry.getKey());
+						} else {
+							colName = entry.getKey();
 						}
-					} else if (entry.getValue().getSimpleName().equals("String")) {
-						String value = (String)eData.get(entry.getKey());
-						Method m = setter.get(entry.getKey());
-						try {
-							m.invoke(obj, value);
-						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+						if (entry.getValue().getSimpleName().equals("int")) {
+							int value = (int)eData.get(colName);
+							Method m = setter.get(entry.getKey());
+							try {
+								m.invoke(obj, value);
+							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						} else if (entry.getValue().getSimpleName().equals("String")) {
+							String value = (String)eData.get(colName);
+							Method m = setter.get(entry.getKey());
+							try {
+								m.invoke(obj, value);
+							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
 					}
 				}

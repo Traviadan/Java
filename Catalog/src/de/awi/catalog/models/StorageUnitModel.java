@@ -10,7 +10,7 @@ public class StorageUnitModel extends DbTableModel {
 	
 	public enum Fields {
 		Id (StorageUnit.ID), Name (StorageUnit.NAME), Description (StorageUnit.DESCRIPTION),
-		Type(StorageUnit.TYPE), Width (StorageUnit.WIDTH), Length (StorageUnit.LENGTH), Height (StorageUnit.HEIGHT), Weight (StorageUnit.WEIGHT);
+		Type(StorageUnit.TYPE), Length (StorageUnit.LENGTH), Width (StorageUnit.WIDTH), Height (StorageUnit.HEIGHT), Weight (StorageUnit.WEIGHT);
 
 		private String name;
 		private Fields(String name) {

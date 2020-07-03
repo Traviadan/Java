@@ -6,19 +6,25 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 import de.awi.catalog.DeviceTable;
+import de.awi.catalog.events.StockpilingEvent;
+import de.awi.catalog.interfaces.StockpilingListener;
 import de.awi.catalog.models.Device;
 import de.awi.catalog.models.DeviceModel;
 import de.traviadan.lib.db.Db;
 
-public class DeviceSplitPane extends EditTableSplitPane {
+public class DeviceSplitPane extends EditTableSplitPane implements StockpilingListener {
 
 	private static final long serialVersionUID = 1L;
 
@@ -29,15 +35,36 @@ public class DeviceSplitPane extends EditTableSplitPane {
 	private JTextField txtSerialNr = new JTextField();
 	private JComboBox<Device.Type> cmbType = new JComboBox<Device.Type>();
 	private JComboBox<Device.Protection> cmbProtection = new JComboBox<Device.Protection>();
+	private JPanel panelTable = new JPanel();
+	private JPanel panelEdit = new JPanel();
+	
+
 	
 	public DeviceSplitPane(Db dataBase) {
 		super(dataBase, JSplitPane.VERTICAL_SPLIT);
 		init();
 	}
 	
+	
+	
+	public JPanel getPanelTable() {
+		return panelTable;
+	}
+	
+	public JPanel getPanelEdit() {
+		return panelEdit;
+	}
+	
+	
 	private void init() {
 		setDividerLocation(300);
 		model = new DeviceModel();
+		model.addTableModelListener(new TableModelListener() {
+			@Override
+			public void tableChanged(TableModelEvent e) {
+				clearFields();
+			}
+		});
 		table = new DeviceTable();
 		table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			@Override
@@ -49,12 +76,11 @@ public class DeviceSplitPane extends EditTableSplitPane {
 				
 			}
 		});
-		JPanel panelTable = new JPanel();
 		panelTable.setLayout(new BorderLayout(5, 5));
 		initTable(panelTable);
 		add(panelTable);
 		
-		JPanel panelEdit = new JPanel();
+		
 		GridBagLayout gbl = new GridBagLayout();
 		panelEdit.setLayout(gbl);
 
@@ -125,9 +151,8 @@ public class DeviceSplitPane extends EditTableSplitPane {
 					} else {
 						model.update(db, d);
 					}
-					model.populate(db);
+					model.populate(db, true);
 					model.fireTableDataChanged();
-					clearFields();
 				}
 	        }  
 	    });
@@ -150,15 +175,25 @@ public class DeviceSplitPane extends EditTableSplitPane {
 						null, null, null);
 				if(choice == JOptionPane.YES_OPTION) {
 					model.delete(db, model.getObjectAtRow(table.getSelectedRow()));
-					model.populate(db);
+					model.populate(db, true);
 					model.fireTableDataChanged();
-					clearFields();
 				}
 	        }  
 	    });
 		addCommandButtons(panelEdit, gbl);
 		
 		add(panelEdit);
+		
+		DeviceTable.class.cast(getTable()).addPopupMenu();
+	}
+	
+	@Override
+	protected void initTable(JComponent cmp) {
+		scrollPane = new JScrollPane(table);
+		cmp.add(scrollPane);
+		model.populate(db, true);
+		table.setModel(model);
+		table.setupColumns();
 	}
 	
 	public void clearFields() {
@@ -184,6 +219,13 @@ public class DeviceSplitPane extends EditTableSplitPane {
 		cmbType.setSelectedIndex(d.getType().ordinal());
 		cmbProtection.setSelectedIndex(d.getProtection().ordinal());
 		updateButtons();
+	}
+
+
+
+	@Override
+	public void updateStorage(StockpilingEvent event) {
+		
 	}
 
 }
