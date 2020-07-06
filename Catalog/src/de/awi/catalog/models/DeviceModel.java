@@ -69,7 +69,7 @@ public class DeviceModel extends DbTableModel {
 			String tableName = StorageUnit.class.getAnnotation(DbTableName.class).name();
 			List<Map<String, Object>> l = joinedData.get(StorageUnit.class);
 			System.out.println(l);
-			return l.get(rowIndex).get(String.format("%s.name", tableName));
+			return l.get(rowIndex).get(String.format("%s_name", tableName));
 		} else {
 			return super.getValueAt(rowIndex, columnIndex);
 		}

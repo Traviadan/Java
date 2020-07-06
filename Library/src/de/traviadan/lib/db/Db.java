@@ -166,7 +166,7 @@ public class Db {
 		StringBuilder sb = new StringBuilder("Select ");
 		String joinName = "";
 		String using = "";
-		appendColumns(columns, sb);
+		appendColumns(columns, tableName, sb);
 		for (Map.Entry<String, Class<?>> joinEntry: joins.entrySet()) {
 			joinName = Db.getTableName(joinEntry.getValue());
 			using = joinEntry.getKey();
@@ -178,7 +178,7 @@ public class Db {
 			appendColumns(joinColumns, joinName, sb);
 		}
 		sb.append(String.format(" FROM %s ", tableName));
-		sb.append(String.format("LEFT JOIN %s ON %s_%s = %s_%s", joinName, tableName, using, joinName, using));
+		sb.append(String.format("LEFT JOIN %s USING(%s)", joinName, using));
 		
 		System.out.println(sb.toString());
 		List<Map<String, Object>> rsData = new ArrayList<>();
@@ -190,7 +190,7 @@ public class Db {
         		Map<String, Object> eData = new LinkedHashMap<>();
         		for (Map.Entry<String, Class<?>> entry: columns.entrySet()) {
         			String colName = String.format("%s_%s", tableName, entry.getKey());
-					eData.put(colName, rs.getObject(entry.getKey()));
+					eData.put(colName, rs.getObject(colName));
 				}
         		for (Map.Entry<String, Class<?>> joinEntry: joins.entrySet()) {
         			joinName = Db.getTableName(joinEntry.getValue());
@@ -200,7 +200,7 @@ public class Db {
         			}
             		for (Map.Entry<String, Class<?>> entry: joinColumns.entrySet()) {
             			String colName = String.format("%s_%s", joinName, entry.getKey());
-    					eData.put(colName, rs.getObject(entry.getKey()));
+    					eData.put(colName, rs.getObject(colName));
     				}
         		}
         		rsData.add(eData);

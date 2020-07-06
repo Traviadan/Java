@@ -102,7 +102,7 @@ public class DbTableModel extends AbstractTableModel {
 					System.out.println(row);
 					Map<String, Object> jd = new HashMap<>();
 					for (Map.Entry<String, Object> e : row.entrySet()) {
-						if (e.getKey().startsWith(joinTableName+".")) {
+						if (e.getKey().startsWith(joinTableName+"_")) {
 							jd.put(e.getKey(), e.getValue());
 						}
 					}
@@ -146,9 +146,9 @@ public class DbTableModel extends AbstractTableModel {
 			}
 			if (obj != null ) {
 				for (Map.Entry<String, Class<?>> entry: columns.entrySet()) {
-					if (setter.containsKey(colName)) {
+					if (setter.containsKey(entry.getKey())) {
 						if (joined) {
-							colName = String.format("%s.%s", tableName, entry.getKey());
+							colName = String.format("%s_%s", tableName, entry.getKey());
 						} else {
 							colName = entry.getKey();
 						}
