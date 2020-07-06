@@ -84,10 +84,10 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 		GridBagLayout gbl = new GridBagLayout();
 		panelEdit.setLayout(gbl);
 
-		createTextInput(panelEdit, gbl, "Name:", txtName, 0, 0);
-		createTextInput(panelEdit, gbl, "Beschreibung:", txtDescription, 0, 1);
-		createTextInput(panelEdit, gbl, "Hersteller:", txtManufacturer, 0, 2);
-		createTextInput(panelEdit, gbl, "Inventar-Nr.:", txtUnitNr, 0, 3);
+		createTextInput(panelEdit, gbl, "Ident-Nr.:", txtUnitNr, 0, 0);
+		createTextInput(panelEdit, gbl, "Name:", txtName, 0, 1);
+		createTextInput(panelEdit, gbl, "Beschreibung:", txtDescription, 0, 2);
+		createTextInput(panelEdit, gbl, "Hersteller:", txtManufacturer, 0, 3);
 		createTextInput(panelEdit, gbl, "Serien-Nr.:", txtSerialNr, 0, 4);
 		
 		for (Device.Type t: Device.Type.values()) {
@@ -135,9 +135,9 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 					d.setUnitnr(txtUnitNr.getText());
 					d.setSerialnr(txtSerialNr.getText());
 					if (cmbType.getSelectedItem() == null) {
-						d.setType(Device.Type.NA);
+						d.setDeviceType(Device.Type.NA);
 					} else {
-						d.setType((Device.Type)cmbType.getSelectedItem());
+						d.setDeviceType((Device.Type)cmbType.getSelectedItem());
 					}
 					if (cmbProtection.getSelectedItem() == null) {
 						d.setProtection(Device.Protection.NA);
@@ -216,7 +216,7 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 		txtManufacturer.setText(d.getManufacturer());
 		txtUnitNr.setText(d.getUnitnr());
 		txtSerialNr.setText(d.getSerialnr());
-		cmbType.setSelectedIndex(d.getType().ordinal());
+		cmbType.setSelectedIndex(d.getDeviceType().ordinal());
 		cmbProtection.setSelectedIndex(d.getProtection().ordinal());
 		updateButtons();
 	}

@@ -11,4 +11,5 @@ public @interface DbFieldGetter {
 	String join() default "";
 	String constraint() default "";
 	boolean visibility() default true;
+	int order() default 0;
 }

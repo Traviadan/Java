@@ -32,7 +32,7 @@ import javax.swing.JTextArea;
 import de.awi.catalog.gui.DeviceSplitPane;
 import de.awi.catalog.gui.StorageUnitSplitPane;
 import de.awi.catalog.models.DeviceModel;
-import de.awi.catalog.models.PartModel;
+import de.awi.catalog.models.ElectronicPartModel;
 import de.awi.catalog.models.StorageUnitModel;
 import de.traviadan.lib.db.Db;
 import de.traviadan.lib.gui.GuiFactory;
@@ -51,7 +51,7 @@ public class MainWindow extends WindowFrame{
 	private Log log;
 	private Db db;
 	private DeviceModel deviceModel;
-	private PartModel partModel;
+	private ElectronicPartModel electronicPartModel;
 	private StorageUnitModel storageUnitModel;
 	
 	public MainWindow() {
@@ -77,8 +77,8 @@ public class MainWindow extends WindowFrame{
 		db = new Db("catalog.db");
 		deviceModel = new DeviceModel();
 		deviceModel.createDbTable(db);
-		partModel = new PartModel();
-		partModel.createDbTable(db);
+		electronicPartModel = new ElectronicPartModel();
+		electronicPartModel.createDbTable(db);
 		storageUnitModel = new StorageUnitModel();
 		storageUnitModel.createDbTable(db);
 		
@@ -197,8 +197,8 @@ public class MainWindow extends WindowFrame{
 		DeviceTable.class.cast(devicePane.getTable()).addStockpilingListener(storageUnitPane);
 		
 		tabbedPane.addTab("Tab 1", panel1);
-		tabbedPane.addTab("Tab 2", storageUnitPane);
-		tabbedPane.addTab("Tab 3", devicePane);
+		tabbedPane.addTab("Lagereinheiten", storageUnitPane);
+		tabbedPane.addTab("Geräte", devicePane);
 		
 		add(tabbedPane);
 	}

@@ -10,6 +10,7 @@ import javax.swing.event.EventListenerList;
 
 import de.awi.catalog.events.StockpilingEvent;
 import de.awi.catalog.interfaces.StockpilingListener;
+import de.awi.catalog.models.Device;
 import de.awi.catalog.models.DeviceModel;
 
 public class DeviceTable extends AbstractTable {
@@ -44,12 +45,19 @@ public class DeviceTable extends AbstractTable {
 				getColumnModel().getColumn(col).setPreferredWidth(0);
 				getColumnModel().getColumn(col).setMinWidth(0);
 				getColumnModel().getColumn(col).setMaxWidth(0);
+			} else {
+				if (name == Device.NAME) {
+					getColumnModel().getColumn(col).setPreferredWidth(150); // Name
+					getColumnModel().getColumn(col).setMinWidth(100);
+				} else if (name == Device.DESCRIPTION) {
+					getColumnModel().getColumn(col).setPreferredWidth(280); // Description
+					getColumnModel().getColumn(col).setMinWidth(150);
+				} else if (name == Device.UNITNR) {
+					getColumnModel().getColumn(col).setPreferredWidth(80); // Identnr
+					getColumnModel().getColumn(col).setMinWidth(50);
+				}
 			}
 		}
-		getColumnModel().getColumn(1).setPreferredWidth(150); // Name
-		getColumnModel().getColumn(1).setMinWidth(100);
-		getColumnModel().getColumn(2).setPreferredWidth(280); // Description
-		getColumnModel().getColumn(2).setMinWidth(150);
 	}
 	
 	public void addPopupMenu() {
@@ -58,10 +66,18 @@ public class DeviceTable extends AbstractTable {
         JMenuItem stockpilingMenuItem = new JMenuItem("Einlagern");
         stockpilingMenuItem.addActionListener((e) -> {
         	if (getSelectedRow() >= 0) {
-        		notifyStockpiling(new StockpilingEvent(this, DeviceModel.class.cast(getModel()).getObjectAtRow(getSelectedRow())));
+        		notifyStockpiling(new StockpilingEvent(this, DeviceModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), false));
         	}
         });
         popupMenu.add(stockpilingMenuItem);
+
+        JMenuItem outsourceMenuItem = new JMenuItem("Auslagern");
+        outsourceMenuItem.addActionListener((e) -> {
+        	if (getSelectedRow() >= 0) {
+        		notifyStockpiling(new StockpilingEvent(this, DeviceModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), true));
+        	}
+        });
+        popupMenu.add(outsourceMenuItem);
 
         JMenuItem maximizeMenuItem = new JMenuItem("Delete");
         maximizeMenuItem.addActionListener((e) -> {
@@ -72,7 +88,7 @@ public class DeviceTable extends AbstractTable {
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON3) {
+                if (e.getButton() == MouseEvent.BUTTON3 && getSelectedRow() >= 0) {
                     popupMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }

@@ -24,6 +24,7 @@ public class DbTableModel extends AbstractTableModel {
 	protected Map<String, String> constraints = new LinkedHashMap<>();
 	protected Map<String, Method> getter = new LinkedHashMap<>();
 	protected Map<String, Method> setter = new LinkedHashMap<>();
+	protected Map<String, Integer> order = new LinkedHashMap<>();
 	protected List<Object> data = new ArrayList<>();
 	protected Map<Class<?>, List<Map<String, Object>>> joinedData = new HashMap<>();
 	
@@ -99,7 +100,6 @@ public class DbTableModel extends AbstractTableModel {
 				String joinTableName = joinClass.getAnnotation(DbTableName.class).name();
 				List<Map<String, Object>> l = new ArrayList<>(); 
 				for (Map<String, Object> row : rsData) {
-					System.out.println(row);
 					Map<String, Object> jd = new HashMap<>();
 					for (Map.Entry<String, Object> e : row.entrySet()) {
 						if (e.getKey().startsWith(joinTableName+"_")) {
@@ -179,7 +179,26 @@ public class DbTableModel extends AbstractTableModel {
 	}
 	
 	protected void initColumns() {
-		//properties = Db.getColumnProperties(thisClass);
+		for (Map.Entry<String, Map<String, Object>> colEntry: properties.entrySet()) {
+			order.put(colEntry.getKey(), (Integer)colEntry.getValue().get(Db.ORDER));
+		}
+		Map<String, Map<String, Object>> rest = new LinkedHashMap<>();
+		Map<String, Map<String, Object>> ordered = new LinkedHashMap<>();
+		System.out.println(order);
+		order.entrySet().stream()
+    	.sorted(Map.Entry.comparingByValue())
+    	.forEach(entry -> {
+    		int o = entry.getValue();
+    		String colName = entry.getKey();
+    		if (o == 0) {
+    			rest.put(colName, properties.get(colName));
+    		} else {
+    			ordered.put(colName, properties.get(colName));
+    		}
+    	} );
+		properties = ordered;
+		properties.putAll(rest);
+
 		for (Map.Entry<String, Map<String, Object>> colEntry: properties.entrySet()) {
 			if (((String)colEntry.getValue().get(Db.CONSTRAINT)).equals("PRIMARY KEY")) {
 				primaryField = colEntry.getKey();

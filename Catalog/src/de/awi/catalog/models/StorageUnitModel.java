@@ -1,5 +1,7 @@
 package de.awi.catalog.models;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import de.traviadan.lib.db.Db;
@@ -25,14 +27,19 @@ public class StorageUnitModel extends DbTableModel {
 		super(StorageUnit.class);
 	}
 
+	protected String[] getFields() {
+		String[] f = { StorageUnit.ID, StorageUnit.NAME, StorageUnit.DESCRIPTION, StorageUnit.TYPE, StorageUnit.LENGTH,
+				StorageUnit.WIDTH, StorageUnit.HEIGHT, StorageUnit.WEIGHT };
+		return f;
+	}
+	
 	@Override
 	protected void initColumns() {
 		Map<String, Map<String, Object>> unsorted = Db.getColumnProperties(thisClass);
-		for (Fields field: Fields.values()) {
-			properties.put(field.getFieldName(), unsorted.get(field.getFieldName()));
+		for (String field : getFields()) {
+			properties.put(field, unsorted.get(field));
 		}
 		super.initColumns();
 	}
-
 	
 }

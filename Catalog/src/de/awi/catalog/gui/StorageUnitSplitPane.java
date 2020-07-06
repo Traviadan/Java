@@ -68,8 +68,8 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 
 		createTextInput(panelEdit, gbl, "Name:", txtName, 0, 0);
 		createTextInput(panelEdit, gbl, "Beschreibung:", txtDescription, 0, 1);
-		createTextInput(panelEdit, gbl, "Breite:", txtWidth, 0, 2);
-		createTextInput(panelEdit, gbl, "Länge:", txtLength, 0, 3);
+		createTextInput(panelEdit, gbl, "Länge:", txtLength, 0, 2);
+		createTextInput(panelEdit, gbl, "Breite:", txtWidth, 0, 3);
 		createTextInput(panelEdit, gbl, "Höhe:", txtHeight, 0, 4);
 		createTextInput(panelEdit, gbl, "Gewicht:", txtWeight, 0, 5);
 		
@@ -181,16 +181,19 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 	public void updateStorage(StockpilingEvent event) {
 		if (event.getStockpilingObject() instanceof Device) {
 			Device d = Device.class.cast(event.getStockpilingObject());
-			if (getTable().getSelectedRow() >= 0) {
+			if (event.isOutsourcing()) {
+				d.setStorageunitid(0);
+			} else if (getTable().getSelectedRow() >= 0) {
 				StorageUnit storageUnit = StorageUnit.class.cast(model.getObjectAtRow(getTable().getSelectedRow()));
 				d.setStorageunitid(storageUnit.getId());
-				DeviceTable table = DeviceTable.class.cast(event.getSource());
-				DbTableModel model = DbTableModel.class.cast(table.getModel());
-				model.update(db, d);
-				model.populate(db, true);
-				model.fireTableDataChanged();
-				
+			} else {
+				return;
 			}
+			DeviceTable table = DeviceTable.class.cast(event.getSource());
+			DbTableModel model = DbTableModel.class.cast(table.getModel());
+			model.update(db, d);
+			model.populate(db, true);
+			model.fireTableDataChanged();
 		}
 	}
 

@@ -1,6 +1,5 @@
 package de.traviadan.lib.db;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -24,6 +23,7 @@ public class Db {
 	public static final String VISIBILITY = "visibility";
 	public static final String GETTER = "getter";
 	public static final String SETTER = "setter";
+	public static final String ORDER = "order";
 	
 	private String name;
 	
@@ -137,6 +137,7 @@ public class Db {
 				String name = m.getAnnotation(DbFieldGetter.class).name();
 				if (columns.containsKey(name)) props = columns.get(name);
 				props.put(NAME, m.getAnnotation(DbFieldGetter.class).name());
+				props.put(ORDER, m.getAnnotation(DbFieldGetter.class).order());
 				props.put(CONSTRAINT, m.getAnnotation(DbFieldGetter.class).constraint());
 				props.put(TITLE, m.getAnnotation(DbFieldGetter.class).title());
 				props.put(VISIBILITY, m.getAnnotation(DbFieldGetter.class).visibility());
@@ -164,23 +165,25 @@ public class Db {
 	
 	public List<Map<String, Object>> leftJoin(String tableName, Map<String, Class<?>> columns, Map<String, Class<?>> joins) {
 		StringBuilder sb = new StringBuilder("Select ");
-		String joinName = "";
+		Map<String, Map<String, Class<?>>> joinColumns = new HashMap<>(); 
 		String using = "";
 		appendColumns(columns, tableName, sb);
 		for (Map.Entry<String, Class<?>> joinEntry: joins.entrySet()) {
-			joinName = Db.getTableName(joinEntry.getValue());
 			using = joinEntry.getKey();
-			Map<String, Class<?>> joinColumns = new LinkedHashMap<>();
+			String name = Db.getTableName(joinEntry.getValue());
+			Map<String, Class<?>> jcols = new LinkedHashMap<>();
 			for (Map.Entry<String, Map<String, Object>> propEntry: Db.getColumnProperties(joinEntry.getValue()).entrySet()) {
-				joinColumns.put(propEntry.getKey(), (Class<?>)propEntry.getValue().get(Db.TYPE));
+				jcols.put(propEntry.getKey(), (Class<?>)propEntry.getValue().get(Db.TYPE));
 			}
+			joinColumns.put(name, jcols);
 			sb.append(", ");
-			appendColumns(joinColumns, joinName, sb);
+			appendColumns(jcols, name, sb);
 		}
-		sb.append(String.format(" FROM %s ", tableName));
-		sb.append(String.format("LEFT JOIN %s USING(%s)", joinName, using));
+		sb.append(String.format(" FROM %s", tableName));
+		for (String name : joinColumns.keySet()) {
+			sb.append(String.format(" LEFT JOIN %s USING(%s)", name, using));
+		}
 		
-		System.out.println(sb.toString());
 		List<Map<String, Object>> rsData = new ArrayList<>();
         try (Connection conn = this.connect();
              Statement stmt  = conn.createStatement();
@@ -192,20 +195,15 @@ public class Db {
         			String colName = String.format("%s_%s", tableName, entry.getKey());
 					eData.put(colName, rs.getObject(colName));
 				}
-        		for (Map.Entry<String, Class<?>> joinEntry: joins.entrySet()) {
-        			joinName = Db.getTableName(joinEntry.getValue());
-        			Map<String, Class<?>> joinColumns = new LinkedHashMap<>();
-        			for (Map.Entry<String, Map<String, Object>> propEntry: Db.getColumnProperties(joinEntry.getValue()).entrySet()) {
-        				joinColumns.put(propEntry.getKey(), (Class<?>)propEntry.getValue().get(Db.TYPE));
-        			}
-            		for (Map.Entry<String, Class<?>> entry: joinColumns.entrySet()) {
-            			String colName = String.format("%s_%s", joinName, entry.getKey());
+        		for (Map.Entry<String, Map<String, Class<?>>> entry: joinColumns.entrySet()) {
+        			String name = entry.getKey();
+            		for (Map.Entry<String, Class<?>> colEntry: entry.getValue().entrySet()) {
+            			String colName = String.format("%s_%s", name, colEntry.getKey());
     					eData.put(colName, rs.getObject(colName));
     				}
         		}
         		rsData.add(eData);
 			}
-        	System.out.println("rsData:" + rsData.get(0));
             return rsData;
         } catch (SQLException e) {
             System.out.println("LeftJoin Exception: " + e.getMessage());

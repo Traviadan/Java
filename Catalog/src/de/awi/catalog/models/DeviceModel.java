@@ -4,38 +4,31 @@ import java.util.List;
 import java.util.Map;
 
 import de.traviadan.lib.db.Db;
-import de.traviadan.lib.db.DbTableModel;
 import de.traviadan.lib.db.DbTableName;
 
-public class DeviceModel extends DbTableModel {
+public class DeviceModel extends MaterialModel {
 	private static final long serialVersionUID = 1L;
-	
-	public enum Fields {
-		Id (Device.ID), Name (Device.NAME), Description (Device.DESCRIPTION), Manufacturer (Device.MANUFACTURER), UnitNr (Device.UNITNR),
-		SerialNr (Device.SERIALNR), Type(Device.TYPE), Protection(Device.PROTECTION), Interval(Device.INTERVAL), StorageunitId (Device.STORAGEUNITID),
-		ProjectId (Device.PROJECTID), LocationId (Device.LOCATIONID);
-		
-		private String name;
-		private Fields(String name) {
-			this.name = name;
-		}
-		public String getFieldName() {
-			return this.name;
-		}
-	}
 	
 	public DeviceModel() {
 		super(Device.class);
 	}
+	
+	protected String[] getFields() {
+		String[] f = { Device.UNITNR, Device.TYPE, Device.PROTECTION, Device.INTERVAL, Device.PROJECTID, Device.LOCATIONID };
+		return f;
+	}
 
 	@Override
 	protected void initColumns() {
+		initMaterialColumns();
 		Map<String, Map<String, Object>> unsorted = Db.getColumnProperties(thisClass);
-		for (Fields field: Fields.values()) {
-			properties.put(field.getFieldName(), unsorted.get(field.getFieldName()));
+		
+		for (String field : getFields()) {
+			properties.put(field, unsorted.get(field));
 		}
 		super.initColumns();
 	}
+
 
 	@Override
 	public String getColumnName(int column) {
@@ -68,7 +61,6 @@ public class DeviceModel extends DbTableModel {
 				&& joinedData.keySet().contains(StorageUnit.class)) {
 			String tableName = StorageUnit.class.getAnnotation(DbTableName.class).name();
 			List<Map<String, Object>> l = joinedData.get(StorageUnit.class);
-			System.out.println(l);
 			return l.get(rowIndex).get(String.format("%s_name", tableName));
 		} else {
 			return super.getValueAt(rowIndex, columnIndex);

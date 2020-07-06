@@ -7,19 +7,13 @@ import de.traviadan.lib.db.DbTableName;
 
 @DbTableJoin(table = {StorageUnit.class}, using= {"storageunitid"})
 @DbTableName(name="devices")
-public class Device {
-	public static final String ID = "deviceid";
-	public static final String NAME = "name";
-	public static final String DESCRIPTION = "description";
-	public static final String SERIALNR = "serialnr";
+public class Device extends Material {
 	public static final String UNITNR = "unitnr";
 	public static final String TYPE = "type";
-	public static final String MANUFACTURER = "manufacturer";
 	public static final String PROTECTION = "protection";
 	public static final String LOCATIONID = "locationid";
 	public static final String INTERVAL = "interval";
 	public static final String PROJECTID = "projectid";
-	public static final String STORAGEUNITID = "storageunitid";
 
 	public enum Type {
 		NA (""), Electric ("Elektrogerät"), Mechanic ("Mechanikteil"), Accessoire ("Zubehör");
@@ -35,25 +29,19 @@ public class Device {
 		@Override
 		public String toString() { return this.entry; }
 	}
-	private int id;
-	private String name;
-	private String serialnr;
 	private String unitnr;
-	private Device.Type type;
-	private String description;
-	private String manufacturer;
+	private Device.Type deviceType;
 	private Device.Protection protection;
 	private int locationid;
 	private int interval;
 	private int projectid;
-	private int storageunitid;
 
 	public Device() {
 		id = 0;
 		name = "";
 		serialnr = "";
 		unitnr = "";
-		type = Type.NA;
+		deviceType = Type.NA;
 		description = "";
 		manufacturer = "";
 		protection = Protection.NA;
@@ -63,34 +51,79 @@ public class Device {
 		storageunitid = 0;
 	}
 	
-	@DbFieldGetter(name=ID, title="Id", visibility=false, constraint="PRIMARY KEY")
+	@Override
 	public int getId() {
 		return id;
 	}
-	@DbFieldSetter(name=ID)
+	@Override
 	public void setId(int id) {
 		this.id = id;
 	}
 	
-	@DbFieldGetter(name=NAME, title="Name")
+	@Override
 	public String getName() {
 		return this.name;
 	}
-	@DbFieldSetter(name=NAME)
+	@Override
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	@DbFieldGetter(name=SERIALNR, title="Serien-Nr.")
+	@Override
 	public String getSerialnr() {
 		return serialnr;
 	}
-	@DbFieldSetter(name=SERIALNR)
+	@Override
 	public void setSerialnr(String serialnr) {
 		this.serialnr = serialnr;
 	}
 
-	@DbFieldGetter(name=UNITNR, title="Teile-Nr.")
+	@Override
+	public String getDescription() {
+		return description;
+	}
+	@Override
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	@Override
+	public String getManufacturer() {
+		return manufacturer;
+	}
+	@Override
+	public void setManufacturer(String manufacturer) {
+		this.manufacturer = manufacturer;
+	}
+
+	@Override
+	public String getPartnr() {
+		return this.partnr;
+	}
+	@Override
+	public void setPartnr(String partnr) {
+		this.partnr = partnr;
+	}
+
+	@Override
+	public String getType() {
+		return this.type;
+	}
+	@Override
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	@Override
+	public int getStorageunitid() {
+		return storageunitid;
+	}
+	@Override
+	public void setStorageunitid(int storageunitid) {
+		this.storageunitid = storageunitid;
+	}
+
+	@DbFieldGetter(name=UNITNR, title="Identnr.", order=1)
 	public String getUnitnr() {
 		return unitnr;
 	}
@@ -100,36 +133,18 @@ public class Device {
 	}
 
 	@DbFieldGetter(name=TYPE, title="Gerätetyp")
-	public int getTypeDb() {
-		return type.ordinal();
+	public int getDeviceTypeDb() {
+		return deviceType.ordinal();
 	}
-	public Device.Type getType() {
-		return type;
+	public Device.Type getDeviceType() {
+		return deviceType;
 	}
 	@DbFieldSetter(name=TYPE)
-	public void setTypeDb(int ord) {
-		this.type = Device.Type.values()[ord];
+	public void setDeviceTypeDb(int ord) {
+		this.deviceType = Device.Type.values()[ord];
 	}
-	public void setType(Device.Type type) {
-		this.type = type;
-	}
-
-	@DbFieldGetter(name=DESCRIPTION, title="Beschreibung")
-	public String getDescription() {
-		return description;
-	}
-	@DbFieldSetter(name=DESCRIPTION)
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	@DbFieldGetter(name=MANUFACTURER, title="Hersteller")
-	public String getManufacturer() {
-		return manufacturer;
-	}
-	@DbFieldSetter(name=MANUFACTURER)
-	public void setManufacturer(String manufacturer) {
-		this.manufacturer = manufacturer;
+	public void setDeviceType(Device.Type type) {
+		this.deviceType = type;
 	}
 
 	@DbFieldGetter(name=PROTECTION, title="Schutzklasse")
@@ -174,14 +189,6 @@ public class Device {
 		this.projectid = projectid;
 	}
 
-	@DbFieldGetter(name=STORAGEUNITID, visibility=false, title="LagereinheitId")
-	public int getStorageunitid() {
-		return storageunitid;
-	}
-	@DbFieldSetter(name=STORAGEUNITID)
-	public void setStorageunitid(int storageunitid) {
-		this.storageunitid = storageunitid;
-	}
 
 	@Override
 	public int hashCode() {
