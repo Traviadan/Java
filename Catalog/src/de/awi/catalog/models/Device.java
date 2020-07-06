@@ -5,7 +5,7 @@ import de.traviadan.lib.db.DbTableJoin;
 import de.traviadan.lib.db.DbFieldSetter;
 import de.traviadan.lib.db.DbTableName;
 
-@DbTableJoin(table = {StorageUnit.class}, using= {"storageunitid"})
+@DbTableJoin(table = {StorageUnit.class}, using= {Material.STORAGEUNITID})
 @DbTableName(name="devices")
 public class Device extends Material {
 	public static final String UNITNR = "unitnr";

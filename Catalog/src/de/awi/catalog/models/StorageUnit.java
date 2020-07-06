@@ -2,11 +2,14 @@ package de.awi.catalog.models;
 
 import de.traviadan.lib.db.DbFieldGetter;
 import de.traviadan.lib.db.DbFieldSetter;
+import de.traviadan.lib.db.DbTableJoin;
 import de.traviadan.lib.db.DbTableName;
 
+@DbTableJoin(table = {StorageLocation.class}, using= {StorageUnit.STORAGELOCATIONID})
 @DbTableName(name="storageunits")
 public class StorageUnit {
 	public static final String ID = "storageunitid";
+	public static final String STORAGELOCATIONID = "storagelocationid";
 	public static final String NAME = "name";
 	public static final String DESCRIPTION = "description";
 	public static final String TYPE = "type";
@@ -19,6 +22,7 @@ public class StorageUnit {
 		AluBox, CagePallet, Rack, Shelf 
 	}
 	private int id;
+	private int storagelocationid;
 	private String name;
 	private String description;
 	private Type type;
@@ -31,12 +35,20 @@ public class StorageUnit {
 	public int getId() {
 		return id;
 	}
-
 	@DbFieldSetter(name=ID)
 	public void setId(int id) {
 		this.id = id;
 	}
 	
+	@DbFieldGetter(name=STORAGELOCATIONID, title="StorageLocationId", visibility=false)
+	public int getStoragelocationid() {
+		return storagelocationid;
+	}
+	@DbFieldSetter(name=STORAGELOCATIONID)
+	public void setStoragelocationid(int storagelocationid) {
+		this.storagelocationid = storagelocationid;
+	}
+
 	@DbFieldGetter(name=NAME, title="Bezeichnung")
 	public String getName() {
 		return name;

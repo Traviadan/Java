@@ -26,35 +26,21 @@ import de.traviadan.lib.db.Db;
 
 public class DeviceSplitPane extends EditTableSplitPane implements StockpilingListener {
 
+	public static final int TXT_NAME = 0;
+	public static final int TXT_DESCRIPTION = 1;
+	public static final int TXT_MANUFACTURER = 2;
+	public static final int TXT_UNITNR = 3;
+	public static final int TXT_SERIALNR = 4;
+
 	private static final long serialVersionUID = 1L;
 
-	private JTextField txtName = new JTextField();
-	private JTextField txtDescription = new JTextField();
-	private JTextField txtManufacturer = new JTextField();
-	private JTextField txtUnitNr = new JTextField();
-	private JTextField txtSerialNr = new JTextField();
 	private JComboBox<Device.Type> cmbType = new JComboBox<Device.Type>();
 	private JComboBox<Device.Protection> cmbProtection = new JComboBox<Device.Protection>();
-	private JPanel panelTable = new JPanel();
-	private JPanel panelEdit = new JPanel();
-	
-
 	
 	public DeviceSplitPane(Db dataBase) {
 		super(dataBase, JSplitPane.VERTICAL_SPLIT);
 		init();
 	}
-	
-	
-	
-	public JPanel getPanelTable() {
-		return panelTable;
-	}
-	
-	public JPanel getPanelEdit() {
-		return panelEdit;
-	}
-	
 	
 	private void init() {
 		setDividerLocation(300);
@@ -84,11 +70,14 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 		GridBagLayout gbl = new GridBagLayout();
 		panelEdit.setLayout(gbl);
 
-		createTextInput(panelEdit, gbl, "Ident-Nr.:", txtUnitNr, 0, 0);
-		createTextInput(panelEdit, gbl, "Name:", txtName, 0, 1);
-		createTextInput(panelEdit, gbl, "Beschreibung:", txtDescription, 0, 2);
-		createTextInput(panelEdit, gbl, "Hersteller:", txtManufacturer, 0, 3);
-		createTextInput(panelEdit, gbl, "Serien-Nr.:", txtSerialNr, 0, 4);
+		for (int i=0; i < 5; i++) {
+			txtFields.add(new JTextField());
+		}
+		createTextInput(panelEdit, gbl, "Ident-Nr.:", txtFields.get(TXT_UNITNR), 0, 0);
+		createTextInput(panelEdit, gbl, "Name:", txtFields.get(TXT_NAME), 0, 1);
+		createTextInput(panelEdit, gbl, "Beschreibung:", txtFields.get(TXT_DESCRIPTION), 0, 2);
+		createTextInput(panelEdit, gbl, "Hersteller:", txtFields.get(TXT_MANUFACTURER), 0, 3);
+		createTextInput(panelEdit, gbl, "Serien-Nr.:", txtFields.get(TXT_SERIALNR), 0, 4);
 		
 		for (Device.Type t: Device.Type.values()) {
 			cmbType.addItem(t);
@@ -129,11 +118,11 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 					}
 				}
 				if (d != null) {
-					d.setName(txtName.getText());
-					d.setDescription(txtDescription.getText());
-					d.setManufacturer(txtManufacturer.getText());
-					d.setUnitnr(txtUnitNr.getText());
-					d.setSerialnr(txtSerialNr.getText());
+					d.setName(txtFields.get(TXT_NAME).getText());
+					d.setDescription(txtFields.get(TXT_DESCRIPTION).getText());
+					d.setManufacturer(txtFields.get(TXT_MANUFACTURER).getText());
+					d.setUnitnr(txtFields.get(TXT_UNITNR).getText());
+					d.setSerialnr(txtFields.get(TXT_SERIALNR).getText());
 					if (cmbType.getSelectedItem() == null) {
 						d.setDeviceType(Device.Type.NA);
 					} else {
@@ -188,40 +177,23 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 	}
 	
 	@Override
-	protected void initTable(JComponent cmp) {
-		scrollPane = new JScrollPane(table);
-		cmp.add(scrollPane);
-		model.populate(db, true);
-		table.setModel(model);
-		table.setupColumns();
-	}
-	
 	public void clearFields() {
-		table.getSelectionModel().clearSelection();
-		id = 0;
-		txtName.setText("");
-		txtDescription.setText("");
-		txtManufacturer.setText("");
-		txtUnitNr.setText("");
-		txtSerialNr.setText("");
 		cmbType.setSelectedIndex(0);
 		cmbProtection.setSelectedIndex(0);
-		updateButtons();
+		super.clearFields();
 	}
 	
 	private void updateFields(Device d) {
 		id = d.getId();
-		txtName.setText(d.getName());
-		txtDescription.setText(d.getDescription());
-		txtManufacturer.setText(d.getManufacturer());
-		txtUnitNr.setText(d.getUnitnr());
-		txtSerialNr.setText(d.getSerialnr());
+		txtFields.get(TXT_NAME).setText(d.getName());
+		txtFields.get(TXT_DESCRIPTION).setText(d.getDescription());
+		txtFields.get(TXT_MANUFACTURER).setText(d.getManufacturer());
+		txtFields.get(TXT_UNITNR).setText(d.getUnitnr());
+		txtFields.get(TXT_SERIALNR).setText(d.getSerialnr());
 		cmbType.setSelectedIndex(d.getDeviceType().ordinal());
 		cmbProtection.setSelectedIndex(d.getProtection().ordinal());
 		updateButtons();
 	}
-
-
 
 	@Override
 	public void updateStorage(StockpilingEvent event) {

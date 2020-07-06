@@ -2,19 +2,19 @@ package de.awi.catalog;
 
 import java.util.Vector;
 
-import de.awi.catalog.models.StorageUnit;
-import de.awi.catalog.models.StorageUnitModel;
+import de.awi.catalog.models.StorageLocation;
+import de.awi.catalog.models.StorageLocationModel;
 
-public class StorageUnitTable extends AbstractTable {
+public class StorageLocationTable extends AbstractTable {
 	private static final long serialVersionUID = 1L;
 
-	public StorageUnitTable() {
+	public StorageLocationTable() {
 		super();
 		setRowSelectionAllowed(true);
 	}
 	
 	public void setupColumns() {
-		StorageUnitModel model = (StorageUnitModel)getModel();
+		StorageLocationModel model = (StorageLocationModel)getModel();
 		Vector<Boolean> vis = model.getColumnVisibilities();
 		
 		for (String name: model.getColumnNames()) {
@@ -24,10 +24,11 @@ public class StorageUnitTable extends AbstractTable {
 				getColumnModel().getColumn(col).setMinWidth(0);
 				getColumnModel().getColumn(col).setMaxWidth(0);
 			} else {
-				if (name == StorageUnit.NAME) {
+				if (name == StorageLocation.NAME) {
 					getColumnModel().getColumn(col).setPreferredWidth(150); // Name
 					getColumnModel().getColumn(col).setMinWidth(100);
-				} else if (name == StorageUnit.DESCRIPTION) {
+					getColumnModel().getColumn(col).setMaxWidth(200);
+				} else if (name == StorageLocation.DESCRIPTION) {
 					getColumnModel().getColumn(col).setPreferredWidth(280); // Description
 					getColumnModel().getColumn(col).setMinWidth(150);
 				}

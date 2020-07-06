@@ -4,6 +4,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -26,10 +28,13 @@ public class EditTableSplitPane extends JSplitPane {
 	protected int id;
 	protected DbTableModel model;
 	protected AbstractTable table;
+	protected List<JTextField> txtFields = new ArrayList<>();
 	protected JButton btnUpdate = new JButton("Insert");
 	protected JButton btnReset = new JButton("Reset");
 	protected JButton btnDelete = new JButton("Delete");
 	protected JScrollPane scrollPane;
+	protected JPanel panelTable = new JPanel();
+	protected JPanel panelEdit = new JPanel();
 	
 	public EditTableSplitPane(Db db, int split) {
 		super(split);
@@ -45,6 +50,14 @@ public class EditTableSplitPane extends JSplitPane {
 		return table;
 	}
 	
+	public JPanel getPanelTable() {
+		return panelTable;
+	}
+	
+	public JPanel getPanelEdit() {
+		return panelEdit;
+	}
+
 	protected void initTable(JComponent cmp) {
 		scrollPane = new JScrollPane(table);
 		cmp.add(scrollPane);
@@ -149,5 +162,15 @@ public class EditTableSplitPane extends JSplitPane {
 			btnDelete.setEnabled(true);
 		}
 	}
+	
+	public void clearFields() {
+		table.getSelectionModel().clearSelection();
+		id = 0;
+		for (JTextField t : txtFields) {
+			t.setText("");
+		}
+		updateButtons();
+	}
+
 
 }

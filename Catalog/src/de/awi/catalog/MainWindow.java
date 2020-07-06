@@ -13,7 +13,6 @@ import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -23,16 +22,15 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
 
 import de.awi.catalog.gui.DeviceSplitPane;
+import de.awi.catalog.gui.StorageLocationSplitPane;
 import de.awi.catalog.gui.StorageUnitSplitPane;
 import de.awi.catalog.models.DeviceModel;
 import de.awi.catalog.models.ElectronicPartModel;
+import de.awi.catalog.models.StorageLocationModel;
+import de.awi.catalog.models.StorageModel;
 import de.awi.catalog.models.StorageUnitModel;
 import de.traviadan.lib.db.Db;
 import de.traviadan.lib.gui.GuiFactory;
@@ -53,6 +51,8 @@ public class MainWindow extends WindowFrame{
 	private DeviceModel deviceModel;
 	private ElectronicPartModel electronicPartModel;
 	private StorageUnitModel storageUnitModel;
+	private StorageLocationModel storageLocationModel;
+	private StorageModel storageModel;
 	
 	public MainWindow() {
 		super();
@@ -81,6 +81,10 @@ public class MainWindow extends WindowFrame{
 		electronicPartModel.createDbTable(db);
 		storageUnitModel = new StorageUnitModel();
 		storageUnitModel.createDbTable(db);
+		storageModel = new StorageModel();
+		storageModel.createDbTable(db);
+		storageLocationModel = new StorageLocationModel();
+		storageLocationModel.createDbTable(db);
 		
 		init();
 	}
@@ -91,7 +95,7 @@ public class MainWindow extends WindowFrame{
 	    // set layout
 	    setLayout(new BorderLayout(5, 5));
 	    // Size of the window
-	    setSize(800, 650);
+	    setSize(900, 700);
 	    // Locate Window in the middle of the screen
 	    setLocationRelativeTo(null);
 	    // Show window
@@ -195,8 +199,11 @@ public class MainWindow extends WindowFrame{
 		DeviceSplitPane devicePane = new DeviceSplitPane(db);
 		StorageUnitSplitPane storageUnitPane = new StorageUnitSplitPane(db);
 		DeviceTable.class.cast(devicePane.getTable()).addStockpilingListener(storageUnitPane);
+		StorageLocationSplitPane storagelocationPane = new StorageLocationSplitPane(db);
+		DeviceTable.class.cast(devicePane.getTable()).addStockpilingListener(storagelocationPane);
 		
 		tabbedPane.addTab("Tab 1", panel1);
+		tabbedPane.addTab("Lagerorte", storagelocationPane);
 		tabbedPane.addTab("Lagereinheiten", storageUnitPane);
 		tabbedPane.addTab("Geräte", devicePane);
 		

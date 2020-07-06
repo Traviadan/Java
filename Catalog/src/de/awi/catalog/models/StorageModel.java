@@ -5,16 +5,15 @@ import java.util.Map;
 import de.traviadan.lib.db.Db;
 import de.traviadan.lib.db.DbTableModel;
 
-public class StorageUnitModel extends DbTableModel {
+public class StorageModel extends DbTableModel {
 	private static final long serialVersionUID = 1L;
 	
-	public StorageUnitModel() {
-		super(StorageUnit.class);
+	public StorageModel() {
+		super(Storage.class);
 	}
 
 	protected String[] getFields() {
-		String[] f = { StorageUnit.ID, StorageUnit.STORAGELOCATIONID, StorageUnit.NAME, StorageUnit.DESCRIPTION, StorageUnit.TYPE,
-				StorageUnit.LENGTH, StorageUnit.WIDTH, StorageUnit.HEIGHT, StorageUnit.WEIGHT };
+		String[] f = { Storage.ID, Storage.NAME, Storage.DESCRIPTION };
 		return f;
 	}
 	
