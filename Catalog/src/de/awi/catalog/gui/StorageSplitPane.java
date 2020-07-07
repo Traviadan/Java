@@ -5,7 +5,6 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
@@ -13,44 +12,37 @@ import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import de.awi.catalog.DeviceTable;
-import de.awi.catalog.StorageUnitTable;
+import de.awi.catalog.StorageLocationTable;
+import de.awi.catalog.StorageTable;
 import de.awi.catalog.events.StockpilingEvent;
 import de.awi.catalog.interfaces.StockpilingListener;
-import de.awi.catalog.models.Device;
-import de.awi.catalog.models.StorageUnit;
-import de.awi.catalog.models.StorageUnitModel;
+import de.awi.catalog.models.Storage;
+import de.awi.catalog.models.StorageLocation;
+import de.awi.catalog.models.StorageModel;
 import de.traviadan.lib.db.Db;
 import de.traviadan.lib.db.DbTableModel;
-import de.traviadan.lib.helper.Check;
 
-public class StorageUnitSplitPane extends EditTableSplitPane implements StockpilingListener {
+public class StorageSplitPane extends EditTableSplitPane implements StockpilingListener {
+
 	public static final int TXT_NAME = 0;
 	public static final int TXT_DESCRIPTION = 1;
-	public static final int TXT_WIDTH = 2;
-	public static final int TXT_LENGTH = 3;
-	public static final int TXT_HEIGHT = 4;
-	public static final int TXT_WEIGHT = 5;
-	
+
 	private static final long serialVersionUID = 1L;
 
-	private JComboBox<StorageUnit.Type> cmbType = new JComboBox<>();
-	
-	public StorageUnitSplitPane(Db dataBase) {
+	public StorageSplitPane(Db dataBase) {
 		super(dataBase, JSplitPane.VERTICAL_SPLIT);
 		init();
 	}
 	
 	private void init() {
 		setDividerLocation(300);
-		model = new StorageUnitModel();
-		table = new StorageUnitTable();
+		model = new StorageModel();
+		table = new StorageTable();
 		table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				if (!e.getValueIsAdjusting() && table.getSelectedRow() >= 0) {
-					//System.out.println(model.getObjectAtRow(table.getSelectedRow()));
-					updateFields((StorageUnit)model.getObjectAtRow(table.getSelectedRow()));
+					updateFields((Storage)model.getObjectAtRow(table.getSelectedRow()));
 				}
 				
 			}
@@ -61,53 +53,27 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 		
 		GridBagLayout gbl = new GridBagLayout();
 		panelEdit.setLayout(gbl);
-		
-		for (int i=0; i < 6; i++) {
+
+		for (int i=0; i < 2; i++) {
 			txtFields.add(new JTextField());
 		}
 		createTextInput(panelEdit, gbl, "Name:", txtFields.get(TXT_NAME), 0, 0);
 		createTextInput(panelEdit, gbl, "Beschreibung:", txtFields.get(TXT_DESCRIPTION), 0, 1);
-		createTextInput(panelEdit, gbl, "Länge:", txtFields.get(TXT_LENGTH), 0, 2);
-		createTextInput(panelEdit, gbl, "Breite:", txtFields.get(TXT_WIDTH), 0, 3);
-		createTextInput(panelEdit, gbl, "Höhe:", txtFields.get(TXT_HEIGHT), 0, 4);
-		createTextInput(panelEdit, gbl, "Gewicht:", txtFields.get(TXT_WEIGHT), 0, 5);
 		
-		for (StorageUnit.Type t: StorageUnit.Type.values()) {
-			cmbType.addItem(t);
-		}
-		cmbType.addActionListener( new ActionListener() {
-			  @Override public void actionPerformed( ActionEvent e )
-			  {
-				  JComboBox<?> selectedChoice = (JComboBox<?>) e.getSource();
-				  if (selectedChoice.getSelectedItem() == null) return;
-			  }
-		});
-		createComboBoxInput(panelEdit, gbl, "Typ:", cmbType, 0, 6);
-
 		btnUpdate.addActionListener(new ActionListener(){
 			@Override
 	    	public void actionPerformed(ActionEvent e){
-				StorageUnit obj = null;
+				Storage obj = null;
 				if (id == 0) {
-					obj = new StorageUnit();
+					obj = new Storage();
 				} else {
 					if (table.getSelectedRow() >= 0) {
-						obj = (StorageUnit)model.getObjectAtRow(table.getSelectedRow());
+						obj = (Storage)model.getObjectAtRow(table.getSelectedRow());
 					}
 				}
 				if (obj != null) {
 					obj.setName(txtFields.get(TXT_NAME).getText());
 					obj.setDescription(txtFields.get(TXT_DESCRIPTION).getText());
-					obj.setWidth(Check.forInteger(txtFields.get(TXT_WIDTH)));
-					obj.setLength(Check.forInteger(txtFields.get(TXT_LENGTH)));
-					obj.setHeight(Check.forInteger(txtFields.get(TXT_HEIGHT)));
-					obj.setWeight(Check.forInteger(txtFields.get(TXT_WEIGHT)));
-
-					if (cmbType.getSelectedItem() == null) {
-						obj.setType(StorageUnit.Type.AluBox);
-					} else {
-						obj.setType((StorageUnit.Type)cmbType.getSelectedItem());
-					}
 					
 					if (id == 0) {
 						int lastId = model.insert(db, obj);
@@ -146,52 +112,44 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 				}
 	        }  
 	    });
-		addCommandButtons(panelEdit, gbl, 7);
+		addCommandButtons(panelEdit, gbl, 2);
 		
 		add(panelEdit);
-		
-		StorageUnitTable.class.cast(getTable()).addPopupMenu();
 	}
 	
 	@Override
 	public void initTable(JComponent cmp) {
-		model.populate(db, true, false);
+		model.populate(db);
 		super.initTable(cmp);
 	}
 
 	@Override
 	public void clearFields() {
-		cmbType.setSelectedIndex(0);
 		super.clearFields();
 	}
 	
-	private void updateFields(StorageUnit obj) {
+	private void updateFields(Storage obj) {
 		id = obj.getId();
 		txtFields.get(TXT_NAME).setText(obj.getName());
 		txtFields.get(TXT_DESCRIPTION).setText(obj.getDescription());
-		txtFields.get(TXT_WIDTH).setText(""+obj.getWidth());
-		txtFields.get(TXT_LENGTH).setText(""+obj.getLength());
-		txtFields.get(TXT_HEIGHT).setText(""+obj.getHeight());
-		txtFields.get(TXT_WEIGHT).setText(""+obj.getWeight());
-		cmbType.setSelectedIndex(obj.getType().ordinal());
 		updateButtons();
 	}
 
 	@Override
 	public void updateStorage(StockpilingEvent event) {
-		if (event.getStockpilingObject() instanceof Device) {
-			Device d = Device.class.cast(event.getStockpilingObject());
+		if (event.getStockpilingObject() instanceof StorageLocation) {
+			StorageLocation sl = StorageLocation.class.cast(event.getStockpilingObject());
 			if (event.isOutsourcing()) {
-				d.setStorageunitid(0);
+				sl.setStorageid(0);
 			} else if (getTable().getSelectedRow() >= 0) {
-				StorageUnit storageUnit = StorageUnit.class.cast(model.getObjectAtRow(getTable().getSelectedRow()));
-				d.setStorageunitid(storageUnit.getId());
+				Storage storage = Storage.class.cast(model.getObjectAtRow(getTable().getSelectedRow()));
+				sl.setStorageid(storage.getId());
 			} else {
 				return;
 			}
-			DeviceTable table = DeviceTable.class.cast(event.getSource());
+			StorageLocationTable table = StorageLocationTable.class.cast(event.getSource());
 			DbTableModel model = DbTableModel.class.cast(table.getModel());
-			model.update(db, d);
+			model.update(db, sl);
 			model.populate(db, true, false);
 			model.fireTableDataChanged();
 		}

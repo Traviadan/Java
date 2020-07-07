@@ -6,22 +6,24 @@ import de.traviadan.lib.db.DbTableJoin;
 import de.traviadan.lib.db.DbTableName;
 
 @DbTableJoin(table = {StorageUnit.class}, using= {"storageunitid"})
-@DbTableName(name="electronicparts")
-public class ElectronicPart extends Material {
+@DbTableName(name="parts")
+public class Part extends Material {
 	public static final String VOLTAGE = "voltage";
 	public static final String CURRENT = "current";
 	
 	private int voltage;
 	private int current;
 	
-	public ElectronicPart() {
+	public Part() {
 		id = 0;
 		name = "";
 		serialnr = "";
-		type = "";
+		type = Material.Type.NA;
 		description = "";
 		manufacturer = "";
 		storageunitid = 0;
+		weight = 0.0d;
+		price = 0.0d;
 		voltage = 0;
 		current = 0;
 	}
@@ -55,11 +57,21 @@ public class ElectronicPart extends Material {
 		this.partnr = partnr;
 	}
 
-	public String getType() {
-		return type;
+	@Override
+	public Material.Type getType() {
+		return this.type;
 	}
-	public void setType(String type) {
+	@Override
+	public int getTypeDb() {
+		return this.type.ordinal();
+	}
+	@Override
+	public void setType(Material.Type type) {
 		this.type = type;
+	}
+	@Override
+	public void setTypeDb(int ord) {
+		this.type = Material.Type.values()[ord];
 	}
 
 	public String getDescription() {
@@ -81,6 +93,26 @@ public class ElectronicPart extends Material {
 	}
 	public void setStorageunitid(int storageunitid) {
 		this.storageunitid = storageunitid;
+	}
+
+	@Override
+	public double getWeight() {
+		return this.weight;
+	}
+
+	@Override
+	public void setWeight(double weight) {
+		this.weight = weight;
+	}
+
+	@Override
+	public double getPrice() {
+		return this.price;
+	}
+
+	@Override
+	public void setPrice(double price) {
+		this.price = price;
 	}
 
 	@DbFieldGetter(name=VOLTAGE, title="Spannung")
@@ -117,7 +149,7 @@ public class ElectronicPart extends Material {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ElectronicPart other = (ElectronicPart) obj;
+		Part other = (Part) obj;
 		if (id != other.id)
 			return false;
 		return true;

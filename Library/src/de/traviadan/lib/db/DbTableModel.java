@@ -40,6 +40,10 @@ public class DbTableModel extends AbstractTableModel {
 		initColumns();
 	}
 
+	public int joinedDataSize() {
+		return joinedData.size();
+	}
+	
 	@Override
 	public int findColumn(String name) {
 		int found = -1;
@@ -93,11 +97,11 @@ public class DbTableModel extends AbstractTableModel {
 		return constraints;
 	}
 
-	public void populate(Db db, boolean join) {
+	public void populate(Db db, boolean join, boolean recursive) {
 		if (join && joins.size() > 0) {
-			List<Map<String, Object>> rsData = db.leftJoin(tableName, columns, joins);
+			List<Map<String, Object>> rsData = db.leftJoin(tableName, columns, joins, recursive);
 			for (Class<?> joinClass : joins.values()) {
-				String joinTableName = joinClass.getAnnotation(DbTableName.class).name();
+				String joinTableName = Db.getTableName(joinClass);
 				List<Map<String, Object>> l = new ArrayList<>(); 
 				for (Map<String, Object> row : rsData) {
 					Map<String, Object> jd = new HashMap<>();
@@ -161,6 +165,24 @@ public class DbTableModel extends AbstractTableModel {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
+						} else if (entry.getValue().getSimpleName().equals("float")) {
+							float value = (float)eData.get(colName);
+							Method m = setter.get(entry.getKey());
+							try {
+								m.invoke(obj, value);
+							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						} else if (entry.getValue().getSimpleName().equals("double")) {
+							double value = (double)eData.get(colName);
+							Method m = setter.get(entry.getKey());
+							try {
+								m.invoke(obj, value);
+							} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						} else if (entry.getValue().getSimpleName().equals("String")) {
 							String value = (String)eData.get(colName);
 							Method m = setter.get(entry.getKey());
@@ -184,7 +206,6 @@ public class DbTableModel extends AbstractTableModel {
 		}
 		Map<String, Map<String, Object>> rest = new LinkedHashMap<>();
 		Map<String, Map<String, Object>> ordered = new LinkedHashMap<>();
-		System.out.println(order);
 		order.entrySet().stream()
     	.sorted(Map.Entry.comparingByValue())
     	.forEach(entry -> {

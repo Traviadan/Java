@@ -8,8 +8,6 @@ import java.awt.event.ActionListener;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
@@ -23,6 +21,7 @@ import de.awi.catalog.interfaces.StockpilingListener;
 import de.awi.catalog.models.Device;
 import de.awi.catalog.models.DeviceModel;
 import de.traviadan.lib.db.Db;
+import de.traviadan.lib.helper.Check;
 
 public class DeviceSplitPane extends EditTableSplitPane implements StockpilingListener {
 
@@ -31,6 +30,9 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 	public static final int TXT_MANUFACTURER = 2;
 	public static final int TXT_UNITNR = 3;
 	public static final int TXT_SERIALNR = 4;
+	public static final int TXT_INTERVAL = 5;
+	public static final int TXT_WEIGHT = 6;
+	public static final int TXT_PRICE = 7;
 
 	private static final long serialVersionUID = 1L;
 
@@ -70,7 +72,7 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 		GridBagLayout gbl = new GridBagLayout();
 		panelEdit.setLayout(gbl);
 
-		for (int i=0; i < 5; i++) {
+		for (int i=0; i < 8; i++) {
 			txtFields.add(new JTextField());
 		}
 		createTextInput(panelEdit, gbl, "Ident-Nr.:", txtFields.get(TXT_UNITNR), 0, 0);
@@ -106,6 +108,10 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 		});
 		createComboBoxInput(panelEdit, gbl, "Schutzklasse:", cmbProtection, 0, 6);
 		
+		createTextInput(panelEdit, gbl, "Prüfinterval:", txtFields.get(TXT_INTERVAL), 0, 7);
+		createTextInput(panelEdit, gbl, "Gewicht:", txtFields.get(TXT_WEIGHT), 0, 8);
+		createTextInput(panelEdit, gbl, "Preis:", txtFields.get(TXT_PRICE), 0, 9);
+		
 		btnUpdate.addActionListener(new ActionListener(){
 			@Override
 	    	public void actionPerformed(ActionEvent e){
@@ -123,6 +129,9 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 					d.setManufacturer(txtFields.get(TXT_MANUFACTURER).getText());
 					d.setUnitnr(txtFields.get(TXT_UNITNR).getText());
 					d.setSerialnr(txtFields.get(TXT_SERIALNR).getText());
+					d.setInterval(Check.forInteger(txtFields.get(TXT_INTERVAL)));
+					d.setWeight(Check.forDouble(txtFields.get(TXT_WEIGHT)));
+					d.setPrice(Check.forDouble(txtFields.get(TXT_PRICE)));
 					if (cmbType.getSelectedItem() == null) {
 						d.setDeviceType(Device.Type.NA);
 					} else {
@@ -140,7 +149,7 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 					} else {
 						model.update(db, d);
 					}
-					model.populate(db, true);
+					populateModel(false);
 					model.fireTableDataChanged();
 				}
 	        }  
@@ -164,16 +173,22 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 						null, null, null);
 				if(choice == JOptionPane.YES_OPTION) {
 					model.delete(db, model.getObjectAtRow(table.getSelectedRow()));
-					model.populate(db, true);
+					populateModel(false);
 					model.fireTableDataChanged();
 				}
 	        }  
 	    });
-		addCommandButtons(panelEdit, gbl);
+		addCommandButtons(panelEdit, gbl, 10);
 		
 		add(panelEdit);
 		
 		DeviceTable.class.cast(getTable()).addPopupMenu();
+	}
+	
+	@Override
+	public void initTable(JComponent cmp) {
+		model.populate(db, true, false);
+		super.initTable(cmp);
 	}
 	
 	@Override
@@ -190,6 +205,9 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 		txtFields.get(TXT_MANUFACTURER).setText(d.getManufacturer());
 		txtFields.get(TXT_UNITNR).setText(d.getUnitnr());
 		txtFields.get(TXT_SERIALNR).setText(d.getSerialnr());
+		txtFields.get(TXT_INTERVAL).setText(Integer.toString(d.getInterval()));
+		txtFields.get(TXT_WEIGHT).setText(Double.toString(d.getWeight()));
+		txtFields.get(TXT_PRICE).setText(Double.toString(d.getPrice()));
 		cmbType.setSelectedIndex(d.getDeviceType().ordinal());
 		cmbProtection.setSelectedIndex(d.getProtection().ordinal());
 		updateButtons();

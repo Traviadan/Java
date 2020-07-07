@@ -61,11 +61,15 @@ public class EditTableSplitPane extends JSplitPane {
 	protected void initTable(JComponent cmp) {
 		scrollPane = new JScrollPane(table);
 		cmp.add(scrollPane);
-		model.populate(db);
 		table.setModel(model);
 		table.setupColumns();
 	}
 	
+	protected void populateModel(boolean recursive) {
+		if (model.joinedDataSize() > 0)	model.populate(db, true, recursive);
+		else model.populate(db);
+	}
+
 	protected void createTextInput(JPanel panel, GridBagLayout gbl, String labelText, JTextField textField, int gridx, int gridy) {
 		this.createTextInput(panel, gbl, labelText, textField, GridBagConstraints.NONE, gridx, gridy);
 	}
@@ -126,13 +130,13 @@ public class EditTableSplitPane extends JSplitPane {
 		panel.add(comboBox);
 	}
 	
-	protected void addCommandButtons(JPanel panel, GridBagLayout gbl) {
+	protected void addCommandButtons(JPanel panel, GridBagLayout gbl, int gridy) {
 		GridBagConstraints gbc;
 		JPanel pnlButtons = new JPanel(); // Button Panel für die Kommandos
 		pnlButtons.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 5));
 		gbc = new GridBagConstraints();
 		gbc.fill = GridBagConstraints.BOTH;
-		gbc.gridx = 0; gbc.gridy = 7;
+		gbc.gridx = 0; gbc.gridy = gridy;
 		gbc.gridwidth = 2; gbc.gridheight = 1;
 		gbc.weightx = 0; gbc.weighty = 0;
 		gbc.ipadx = 10; gbc.ipady = 3;

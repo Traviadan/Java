@@ -6,15 +6,15 @@ import java.util.Map;
 
 import de.traviadan.lib.db.Db;
 
-public class ElectronicPartModel extends MaterialModel {
+public class PartModel extends MaterialModel {
 	private static final long serialVersionUID = 1L;
 	
-	public ElectronicPartModel() {
-		super(ElectronicPart.class);
+	public PartModel() {
+		super(Part.class);
 	}
 
 	protected String[] getFields() {
-		String[] f = { ElectronicPart.VOLTAGE, ElectronicPart.CURRENT };
+		String[] f = { Part.VOLTAGE, Part.CURRENT };
 		return f;
 	}
 

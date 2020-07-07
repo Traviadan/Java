@@ -12,15 +12,28 @@ public abstract class Material {
 	public static final String TYPE = "type";
 	public static final String MANUFACTURER = "manufacturer";
 	public static final String STORAGEUNITID = "storageunitid";
+	public static final String WEIGHT = "weight";
+	public static final String PRICE = "price";
+	
+	public enum Type {
+		NA (""), Electronic ("Elektronikteil"), Mechanic ("Mechanikteil"), Accessoire ("Zubehör");
+		private String entry;
+		private Type(String entry) { this.entry = entry; }
+		@Override
+		public String toString() { return this.entry; }
+	}
 	
 	protected int id;
 	protected String name;
 	protected String serialnr;
 	protected String partnr;
-	protected String type;
+	protected Material.Type type;
 	protected String description;
 	protected String manufacturer;
 	protected int storageunitid;
+	protected double weight;
+	protected double price;
+	
 	
 	@DbFieldGetter(name=ID, title="Id", visibility=false, constraint="PRIMARY KEY")
 	abstract public int getId();
@@ -47,10 +60,14 @@ public abstract class Material {
 	abstract public void setPartnr(String partnr);
 	
 	@DbFieldGetter(name=TYPE, title="Typ")
-	abstract public String getType();
+	abstract public int getTypeDb();
+	
+	abstract public Material.Type getType();
 	
 	@DbFieldSetter(name=TYPE)
-	abstract public void setType(String type);
+	abstract public void setTypeDb(int type);
+	
+	abstract public void setType(Material.Type type);
 	
 	@DbFieldGetter(name=DESCRIPTION, title="Beschreibung")
 	abstract public String getDescription();
@@ -64,9 +81,21 @@ public abstract class Material {
 	@DbFieldSetter(name=MANUFACTURER)
 	abstract public void setManufacturer(String manufacturer);
 	
-	@DbFieldGetter(name=STORAGEUNITID, title="Lagereinheit-Nr.")
+	@DbFieldGetter(name=STORAGEUNITID, visibility=false, title="Lagereinheit-Nr.")
 	abstract public int getStorageunitid();
 	
 	@DbFieldSetter(name=STORAGEUNITID)
 	abstract public void setStorageunitid(int storageunitid);
+
+	@DbFieldGetter(name=WEIGHT, title="Gewicht")
+	abstract public double getWeight();
+
+	@DbFieldSetter(name=WEIGHT)
+	abstract public void setWeight(double weight);
+
+	@DbFieldGetter(name=PRICE, title="Preis")
+	abstract public double getPrice();
+
+	@DbFieldSetter(name=PRICE)
+	abstract public void setPrice(double price);
 }

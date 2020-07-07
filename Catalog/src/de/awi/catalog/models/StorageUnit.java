@@ -19,7 +19,7 @@ public class StorageUnit {
 	public static final String WEIGHT = "weight";
 	
 	public enum Type {
-		AluBox, CagePallet, Rack, Shelf 
+		AluBox, CagePallet, Rack, Shelf, Unpacked 
 	}
 	private int id;
 	private int storagelocationid;

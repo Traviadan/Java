@@ -36,22 +36,15 @@ public class DeviceModel extends MaterialModel {
 				&& joinedData.keySet().contains(StorageUnit.class)) {
 			return "Lagereinheit";
 		} else {
-			String columnName = (String)columns.keySet().toArray()[column];
-			Map<String, Object> prop = properties.get(columnName);
-			return (String)prop.get(Db.TITLE);
+			return super.getColumnName(column);
 		}
 	}
 	
 	@Override
 	public int getColumnCount() {
 		int cc = super.getColumnCount();
-		if (joinedData.size() == 0)
-			return cc;
-		
-		if (joinedData.keySet().contains(StorageUnit.class)) {
-			cc++;
-		}
-		
+		if (joinedData.size() == 0) return cc;
+		else if (joinedData.keySet().contains(StorageUnit.class)) cc++;
 		return cc;
 	}
 	
@@ -61,7 +54,7 @@ public class DeviceModel extends MaterialModel {
 				&& joinedData.keySet().contains(StorageUnit.class)) {
 			String tableName = StorageUnit.class.getAnnotation(DbTableName.class).name();
 			List<Map<String, Object>> l = joinedData.get(StorageUnit.class);
-			return l.get(rowIndex).get(String.format("%s_name", tableName));
+			return l.get(rowIndex).get(String.format("%s_%s", tableName, StorageUnit.NAME));
 		} else {
 			return super.getValueAt(rowIndex, columnIndex);
 		}

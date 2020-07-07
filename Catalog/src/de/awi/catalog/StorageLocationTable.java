@@ -1,16 +1,39 @@
 package de.awi.catalog;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Vector;
 
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.event.EventListenerList;
+
+import de.awi.catalog.events.StockpilingEvent;
+import de.awi.catalog.interfaces.StockpilingListener;
 import de.awi.catalog.models.StorageLocation;
 import de.awi.catalog.models.StorageLocationModel;
 
 public class StorageLocationTable extends AbstractTable {
 	private static final long serialVersionUID = 1L;
 
+	private EventListenerList stockpilingListeners = new EventListenerList();
+
 	public StorageLocationTable() {
 		super();
 		setRowSelectionAllowed(true);
+	}
+	
+	public void addStockpilingListener( StockpilingListener listener ) {
+		stockpilingListeners.add( StockpilingListener.class, listener );
+	}
+	
+	public void removeStockpilingListener( StockpilingListener listener ) {
+	    stockpilingListeners.remove( StockpilingListener.class, listener );
+	}
+	
+	protected synchronized void notifyStockpiling( StockpilingEvent event ) {
+	    for ( StockpilingListener l : stockpilingListeners.getListeners( StockpilingListener.class ) )
+	    l.updateStorage(event);
 	}
 	
 	public void setupColumns() {
@@ -36,4 +59,39 @@ public class StorageLocationTable extends AbstractTable {
 		}
 	}
 	
+	public void addPopupMenu() {
+        JPopupMenu popupMenu = new JPopupMenu();
+        
+        JMenuItem stockpilingMenuItem = new JMenuItem("Lager zuordnen");
+        stockpilingMenuItem.addActionListener((e) -> {
+        	if (getSelectedRow() >= 0) {
+        		notifyStockpiling(new StockpilingEvent(this, StorageLocationModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), false));
+        	}
+        });
+        popupMenu.add(stockpilingMenuItem);
+
+        JMenuItem outsourceMenuItem = new JMenuItem("Zuordnung entfernen");
+        outsourceMenuItem.addActionListener((e) -> {
+        	if (getSelectedRow() >= 0) {
+        		notifyStockpiling(new StockpilingEvent(this, StorageLocationModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), true));
+        	}
+        });
+        popupMenu.add(outsourceMenuItem);
+
+        JMenuItem maximizeMenuItem = new JMenuItem("Löschen");
+        maximizeMenuItem.addActionListener((e) -> {
+        		System.out.println("Deleting...");
+        });
+        popupMenu.add(maximizeMenuItem);
+
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON3 && getSelectedRow() >= 0) {
+                    popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+        });
+    }
+
 }

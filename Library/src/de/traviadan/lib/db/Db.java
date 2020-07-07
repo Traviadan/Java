@@ -76,6 +76,8 @@ public class Db {
 				sb.append("INTEGER");
 			} else if (cTypeClass.getSimpleName().equals("String")) {
 				sb.append("TEXT");
+			} else if (cTypeClass.getSimpleName().equals("float") || cTypeClass.getSimpleName().equals("double")) {
+				sb.append("REAL");
 			} else {
 				sb.append("NULL");
 			}
@@ -163,26 +165,61 @@ public class Db {
 		}
 	}
 	
-	public List<Map<String, Object>> leftJoin(String tableName, Map<String, Class<?>> columns, Map<String, Class<?>> joins) {
-		StringBuilder sb = new StringBuilder("Select ");
-		Map<String, Map<String, Class<?>>> joinColumns = new HashMap<>(); 
+	public static Map<String, Class<?>> getMoreJoins(Class<?> c) {
+		Map<String, Class<?>> joins = new LinkedHashMap<>();
+		if (c.isAnnotationPresent(DbTableJoin.class)) {
+			Class<?>[] joinClass = c.getAnnotation(DbTableJoin.class).table();
+			String[] nameUsing = c.getAnnotation(DbTableJoin.class).using();
+			for (int i = 0; i < joinClass.length; i++) {
+				joins.put(nameUsing[i], joinClass[i]);
+			}
+		}
+		return joins;
+	}
+
+	private String buildLeftJoin(Map<String, Class<?>> joins, Map<String, Map<String, Class<?>>> joinColumns, StringBuilder sbJoins, boolean recursive) {
+		StringBuilder sb = new StringBuilder();
 		String using = "";
-		appendColumns(columns, tableName, sb);
+
 		for (Map.Entry<String, Class<?>> joinEntry: joins.entrySet()) {
 			using = joinEntry.getKey();
 			String name = Db.getTableName(joinEntry.getValue());
 			Map<String, Class<?>> jcols = new LinkedHashMap<>();
-			for (Map.Entry<String, Map<String, Object>> propEntry: Db.getColumnProperties(joinEntry.getValue()).entrySet()) {
+			for (Map.Entry<String, Map<String, Object>> propEntry : Db.getColumnProperties(joinEntry.getValue()).entrySet()) {
 				jcols.put(propEntry.getKey(), (Class<?>)propEntry.getValue().get(Db.TYPE));
 			}
 			joinColumns.put(name, jcols);
 			sb.append(", ");
 			appendColumns(jcols, name, sb);
+			sbJoins.append(String.format(" LEFT JOIN %s USING(%s)", name, using));
+
+			if (recursive) {
+				Map<String, Class<?>> moreJoins = Db.getMoreJoins(joinEntry.getValue());
+				if (moreJoins.size() > 0) {
+					for (Map.Entry<String, Class<?>> entry: moreJoins.entrySet()) {
+						Map<String, Class<?>> mjcols = new LinkedHashMap<>();
+						for (Map.Entry<String, Map<String, Object>> propEntry : Db.getColumnProperties(entry.getValue()).entrySet()) {
+							mjcols.put(propEntry.getKey(), (Class<?>)propEntry.getValue().get(Db.TYPE));
+						}
+						sb.append(", ");
+						appendColumns(mjcols, Db.getTableName(entry.getValue()), sb);
+						sb.append(buildLeftJoin(moreJoins, joinColumns, sbJoins, recursive));
+					}
+				}
+			}
 		}
+		return sb.toString();
+	}
+	
+	public List<Map<String, Object>> leftJoin(String tableName, Map<String, Class<?>> columns, Map<String, Class<?>> joins, boolean recursive) {
+		StringBuilder sb = new StringBuilder("Select ");
+		appendColumns(columns, tableName, sb);
+
+		Map<String, Map<String, Class<?>>> joinColumns = new HashMap<>();
+		StringBuilder sbJoins = new StringBuilder();
+		sb.append(buildLeftJoin(joins, joinColumns, sbJoins, recursive));
 		sb.append(String.format(" FROM %s", tableName));
-		for (String name : joinColumns.keySet()) {
-			sb.append(String.format(" LEFT JOIN %s USING(%s)", name, using));
-		}
+		sb.append(sbJoins.toString());
 		
 		List<Map<String, Object>> rsData = new ArrayList<>();
         try (Connection conn = this.connect();
@@ -266,6 +303,10 @@ public class Db {
 					pstmt.setInt(idx, iVal);
 				} else if (entry.getValue().getSimpleName().equals("String")) {
 					pstmt.setString(idx, (String)val);
+				} else if (entry.getValue().getSimpleName().equals("float")) {
+					pstmt.setFloat(idx, (float)val);
+				} else if (entry.getValue().getSimpleName().equals("double")) {
+					pstmt.setDouble(idx, (double)val);
 				} else {
 					pstmt.setNull(idx, java.sql.Types.NULL);
 				}
@@ -295,7 +336,6 @@ public class Db {
     		}
 		}
 		sb.append(where);
-		
         try (Connection conn = this.connect();
                 PreparedStatement pstmt = conn.prepareStatement(sb.toString())) {
 
@@ -315,6 +355,12 @@ public class Db {
 				} else if (cTypeClass.getSimpleName().equals("String")) {
 	        		idx++;
 					pstmt.setString(idx, (String)val);
+				} else if (entry.getValue().getSimpleName().equals("float")) {
+	        		idx++;
+					pstmt.setFloat(idx, Float.parseFloat(val.toString()));
+				} else if (entry.getValue().getSimpleName().equals("double")) {
+	        		idx++;
+					pstmt.setDouble(idx, Double.parseDouble(val.toString()));
 				} else {
 	        		idx++;
 					pstmt.setNull(idx, java.sql.Types.NULL);

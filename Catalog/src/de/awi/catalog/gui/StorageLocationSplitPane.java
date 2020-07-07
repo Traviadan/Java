@@ -5,6 +5,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
@@ -15,7 +16,6 @@ import de.awi.catalog.StorageLocationTable;
 import de.awi.catalog.StorageUnitTable;
 import de.awi.catalog.events.StockpilingEvent;
 import de.awi.catalog.interfaces.StockpilingListener;
-import de.awi.catalog.models.Device;
 import de.awi.catalog.models.StorageLocation;
 import de.awi.catalog.models.StorageLocationModel;
 import de.awi.catalog.models.StorageUnit;
@@ -81,7 +81,7 @@ public class StorageLocationSplitPane extends EditTableSplitPane implements Stoc
 					} else {
 						model.update(db, obj);
 					}
-					model.populate(db);
+					populateModel(false);
 					model.fireTableDataChanged();
 					clearFields();
 				}
@@ -106,17 +106,25 @@ public class StorageLocationSplitPane extends EditTableSplitPane implements Stoc
 						null, null, null);
 				if(choice == JOptionPane.YES_OPTION) {
 					model.delete(db, model.getObjectAtRow(table.getSelectedRow()));
-					model.populate(db);
+					populateModel(false);
 					model.fireTableDataChanged();
 					clearFields();
 				}
 	        }  
 	    });
-		addCommandButtons(panelEdit, gbl);
+		addCommandButtons(panelEdit, gbl, 2);
 		
 		add(panelEdit);
+		
+		StorageLocationTable.class.cast(getTable()).addPopupMenu();
 	}
 	
+	@Override
+	public void initTable(JComponent cmp) {
+		model.populate(db, true, false);
+		super.initTable(cmp);
+	}
+
 	@Override
 	public void clearFields() {
 		super.clearFields();
@@ -131,7 +139,7 @@ public class StorageLocationSplitPane extends EditTableSplitPane implements Stoc
 
 	@Override
 	public void updateStorage(StockpilingEvent event) {
-		if (event.getStockpilingObject() instanceof Device) {
+		if (event.getStockpilingObject() instanceof StorageUnit) {
 			StorageUnit su = StorageUnit.class.cast(event.getStockpilingObject());
 			if (event.isOutsourcing()) {
 				su.setStoragelocationid(0);
@@ -144,7 +152,8 @@ public class StorageLocationSplitPane extends EditTableSplitPane implements Stoc
 			StorageUnitTable table = StorageUnitTable.class.cast(event.getSource());
 			DbTableModel model = DbTableModel.class.cast(table.getModel());
 			model.update(db, su);
-			model.populate(db, true);
+			model.populate(db, true, false);
+			System.out.println(model.joinedDataSize());
 			model.fireTableDataChanged();
 		}
 	}

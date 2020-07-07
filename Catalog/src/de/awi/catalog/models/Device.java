@@ -49,6 +49,8 @@ public class Device extends Material {
 		interval = 0;
 		projectid = 0;
 		storageunitid = 0;
+		weight = 0.0d;
+		price = 0.0d;
 	}
 	
 	@Override
@@ -106,12 +108,20 @@ public class Device extends Material {
 	}
 
 	@Override
-	public String getType() {
+	public Material.Type getType() {
 		return this.type;
 	}
 	@Override
-	public void setType(String type) {
+	public int getTypeDb() {
+		return this.type.ordinal();
+	}
+	@Override
+	public void setType(Material.Type type) {
 		this.type = type;
+	}
+	@Override
+	public void setTypeDb(int ord) {
+		this.type = Material.Type.values()[ord];
 	}
 
 	@Override
@@ -121,6 +131,26 @@ public class Device extends Material {
 	@Override
 	public void setStorageunitid(int storageunitid) {
 		this.storageunitid = storageunitid;
+	}
+
+	@Override
+	public double getWeight() {
+		return this.weight;
+	}
+
+	@Override
+	public void setWeight(double weight) {
+		this.weight = weight;
+	}
+
+	@Override
+	public double getPrice() {
+		return this.price;
+	}
+
+	@Override
+	public void setPrice(double price) {
+		this.price = price;
 	}
 
 	@DbFieldGetter(name=UNITNR, title="Identnr.", order=1)
@@ -171,7 +201,7 @@ public class Device extends Material {
 		this.locationid = locationid;
 	}
 
-	@DbFieldGetter(name=INTERVAL, title="Prüfintervall")
+	@DbFieldGetter(name=INTERVAL, visibility=false, title="Prüfintervall")
 	public int getInterval() {
 		return interval;
 	}

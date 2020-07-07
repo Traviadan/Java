@@ -14,7 +14,7 @@ public abstract class MaterialModel extends DbTableModel {
 
 	protected String[] getMaterialFields() {
 		String[] f = {Material.ID, Material.NAME, Material.DESCRIPTION, Material.MANUFACTURER,
-				Material.PARTNR, Material.SERIALNR, Material.TYPE, Material.STORAGEUNITID };
+				Material.PARTNR, Material.SERIALNR, Material.TYPE, Material.WEIGHT, Material.PRICE, Material.STORAGEUNITID };
 		return f;
 	}
 

@@ -26,9 +26,10 @@ import javax.swing.JTabbedPane;
 
 import de.awi.catalog.gui.DeviceSplitPane;
 import de.awi.catalog.gui.StorageLocationSplitPane;
+import de.awi.catalog.gui.StorageSplitPane;
 import de.awi.catalog.gui.StorageUnitSplitPane;
 import de.awi.catalog.models.DeviceModel;
-import de.awi.catalog.models.ElectronicPartModel;
+import de.awi.catalog.models.PartModel;
 import de.awi.catalog.models.StorageLocationModel;
 import de.awi.catalog.models.StorageModel;
 import de.awi.catalog.models.StorageUnitModel;
@@ -49,7 +50,7 @@ public class MainWindow extends WindowFrame{
 	private Log log;
 	private Db db;
 	private DeviceModel deviceModel;
-	private ElectronicPartModel electronicPartModel;
+	private PartModel electronicPartModel;
 	private StorageUnitModel storageUnitModel;
 	private StorageLocationModel storageLocationModel;
 	private StorageModel storageModel;
@@ -77,7 +78,7 @@ public class MainWindow extends WindowFrame{
 		db = new Db("catalog.db");
 		deviceModel = new DeviceModel();
 		deviceModel.createDbTable(db);
-		electronicPartModel = new ElectronicPartModel();
+		electronicPartModel = new PartModel();
 		electronicPartModel.createDbTable(db);
 		storageUnitModel = new StorageUnitModel();
 		storageUnitModel.createDbTable(db);
@@ -200,12 +201,15 @@ public class MainWindow extends WindowFrame{
 		StorageUnitSplitPane storageUnitPane = new StorageUnitSplitPane(db);
 		DeviceTable.class.cast(devicePane.getTable()).addStockpilingListener(storageUnitPane);
 		StorageLocationSplitPane storagelocationPane = new StorageLocationSplitPane(db);
-		DeviceTable.class.cast(devicePane.getTable()).addStockpilingListener(storagelocationPane);
+		StorageUnitTable.class.cast(storageUnitPane.getTable()).addStockpilingListener(storagelocationPane);
+		StorageSplitPane storagePane = new StorageSplitPane(db);
+		StorageLocationTable.class.cast(storagelocationPane.getTable()).addStockpilingListener(storagePane);
 		
-		tabbedPane.addTab("Tab 1", panel1);
-		tabbedPane.addTab("Lagerorte", storagelocationPane);
-		tabbedPane.addTab("Lagereinheiten", storageUnitPane);
 		tabbedPane.addTab("Geräte", devicePane);
+		tabbedPane.addTab("Lagereinheiten", storageUnitPane);
+		tabbedPane.addTab("Lagerorte", storagelocationPane);
+		tabbedPane.addTab("Lager", storagePane);
+		tabbedPane.addTab("Tab", panel1);
 		
 		add(tabbedPane);
 	}
