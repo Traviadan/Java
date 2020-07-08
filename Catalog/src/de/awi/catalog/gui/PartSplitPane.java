@@ -63,7 +63,7 @@ public class PartSplitPane extends EditTableSplitPane implements StockpilingList
 				if (!e.getValueIsAdjusting() && table.getSelectedRow() >= 0) {
 					Part p = (Part)model.getObjectAtRow(table.getSelectedRow());
 					updateFields(p);
-					psuPane.model.selectBy(db, Part.ID, p.getId());
+					psuPane.model.selectBy(db, new String[] { Part.ID, ""+p.getId() });
 					psuPane.model.fireTableDataChanged();
 				}
 			}
@@ -128,7 +128,7 @@ public class PartSplitPane extends EditTableSplitPane implements StockpilingList
 					} else {
 						model.update(db, p);
 					}
-					populateModel(false, "");
+					populateModel(false, null);
 					model.fireTableDataChanged();
 				}
 	        }  
@@ -152,7 +152,7 @@ public class PartSplitPane extends EditTableSplitPane implements StockpilingList
 						null, null, null);
 				if(choice == JOptionPane.YES_OPTION) {
 					model.delete(db, model.getObjectAtRow(table.getSelectedRow()));
-					populateModel(false, "");
+					populateModel(false, null);
 					model.fireTableDataChanged();
 				}
 	        }  
@@ -181,14 +181,14 @@ public class PartSplitPane extends EditTableSplitPane implements StockpilingList
 	
 	@Override
 	public void initTable(JComponent cmp) {
-		model.populate(db, false, false, "");
+		model.populate(db, false, false, null);
 		super.initTable(cmp);
 	}
 	
 	@Override
 	public void clearFields() {
 		cmbType.setSelectedIndex(0);
-		psuPane.model.selectBy(db, Part.ID, 0);
+		psuPane.model.selectBy(db, new String[] { Part.ID, ""+0 });
 		psuPane.model.fireTableDataChanged();
 		super.clearFields();
 	}

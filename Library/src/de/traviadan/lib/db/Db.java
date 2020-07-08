@@ -165,63 +165,68 @@ public class Db {
 		}
 	}
 	
-	public static Map<String, Class<?>> getMoreJoins(Class<?> c) {
-		Map<String, Class<?>> joins = new LinkedHashMap<>();
-		if (c.isAnnotationPresent(DbTableJoin.class)) {
-			Class<?>[] joinClass = c.getAnnotation(DbTableJoin.class).table();
-			String[] nameUsing = c.getAnnotation(DbTableJoin.class).using();
-			for (int i = 0; i < joinClass.length; i++) {
-				joins.put(nameUsing[i], joinClass[i]);
-			}
+	private void addJoinColumns(Map.Entry<String, Class<?>> joinEntry,
+			Map<String, Map<String, Class<?>>> joinColumns, 
+			StringBuilder sbJoins, StringBuilder sb) {
+		String using = joinEntry.getKey();
+		String name = Db.getTableName(joinEntry.getValue());
+		Map<String, Class<?>> jcols = new LinkedHashMap<>();
+		for (Map.Entry<String, Map<String, Object>> propEntry : Db.getColumnProperties(joinEntry.getValue()).entrySet()) {
+			jcols.put(propEntry.getKey(), (Class<?>)propEntry.getValue().get(Db.TYPE));
 		}
-		return joins;
+		joinColumns.put(name, jcols);
+		sb.append(", ");
+		appendColumns(jcols, name, sb);
+		sbJoins.append(String.format(" LEFT JOIN %s USING(%s)", name, using));
 	}
 
-	private String buildLeftJoin(Map<String, Class<?>> joins, Map<String, Map<String, Class<?>>> joinColumns, StringBuilder sbJoins, boolean recursive) {
+	private String buildLeftJoin(Class<?> table, 
+			Map<Class<?>, Map<String, Class<?>>> joins, 
+			Map<String, Map<String, Class<?>>> joinColumns, 
+			StringBuilder sbJoins, boolean recursive) {
+
 		StringBuilder sb = new StringBuilder();
-		String using = "";
 
-		for (Map.Entry<String, Class<?>> joinEntry: joins.entrySet()) {
-			using = joinEntry.getKey();
-			String name = Db.getTableName(joinEntry.getValue());
-			Map<String, Class<?>> jcols = new LinkedHashMap<>();
-			for (Map.Entry<String, Map<String, Object>> propEntry : Db.getColumnProperties(joinEntry.getValue()).entrySet()) {
-				jcols.put(propEntry.getKey(), (Class<?>)propEntry.getValue().get(Db.TYPE));
-			}
-			joinColumns.put(name, jcols);
-			sb.append(", ");
-			appendColumns(jcols, name, sb);
-			sbJoins.append(String.format(" LEFT JOIN %s USING(%s)", name, using));
-
-			if (recursive) {
-				Map<String, Class<?>> moreJoins = Db.getMoreJoins(joinEntry.getValue());
-				if (moreJoins.size() > 0) {
-					for (Map.Entry<String, Class<?>> entry: moreJoins.entrySet()) {
-						Map<String, Class<?>> mjcols = new LinkedHashMap<>();
-						for (Map.Entry<String, Map<String, Object>> propEntry : Db.getColumnProperties(entry.getValue()).entrySet()) {
-							mjcols.put(propEntry.getKey(), (Class<?>)propEntry.getValue().get(Db.TYPE));
-						}
-						sb.append(", ");
-						appendColumns(mjcols, Db.getTableName(entry.getValue()), sb);
-						sb.append(buildLeftJoin(moreJoins, joinColumns, sbJoins, recursive));
-					}
+		if (recursive) {
+			for (Map<String, Class<?>> j : joins.values()) {
+				for (Map.Entry<String, Class<?>> joinEntry: j.entrySet()) {
+					addJoinColumns(joinEntry, joinColumns, sbJoins, sb);
 				}
+			}
+		} else {
+			for (Map.Entry<String, Class<?>> joinEntry: joins.get(table).entrySet()) {
+				addJoinColumns(joinEntry, joinColumns, sbJoins, sb);
 			}
 		}
 		return sb.toString();
 	}
 	
-	public List<Map<String, Object>> leftJoin(String tableName, Map<String, Class<?>> columns, Map<String, Class<?>> joins, boolean recursive, String where) {
+	public List<Map<String, Object>> leftJoin(Class<?> table, Map<String, Class<?>> columns, Map<Class<?>, Map<String, Class<?>>> joins, boolean recursive, String[] where) {
 		StringBuilder sb = new StringBuilder("Select ");
+		String tableName = Db.getTableName(table);
 		appendColumns(columns, tableName, sb);
 
 		Map<String, Map<String, Class<?>>> joinColumns = new HashMap<>();
 		StringBuilder sbJoins = new StringBuilder();
-		sb.append(buildLeftJoin(joins, joinColumns, sbJoins, recursive));
+		sb.append(buildLeftJoin(table, joins, joinColumns, sbJoins, recursive));
 		sb.append(String.format(" FROM %s", tableName));
 		sb.append(sbJoins.toString());
-		if (!where.isBlank()) sb.append(" " + where);
-		
+		if (where != null) {
+			sb.append(" WHERE ");
+			boolean isField = true;
+			boolean and = false;
+			for (String w : where) {
+				if (isField) {
+					if (and) sb.append(" AND ");
+					isField = false;
+					sb.append(String.format("%s_%s = ", tableName, w));
+				} else {
+					isField = true;
+					and = true;
+					sb.append(w);
+				}
+			}
+		}
 		List<Map<String, Object>> rsData = new ArrayList<>();
         try (Connection conn = this.connect();
              Statement stmt  = conn.createStatement();
@@ -240,6 +245,7 @@ public class Db {
     					eData.put(colName, rs.getObject(colName));
     				}
         		}
+        		System.out.println(eData);
         		rsData.add(eData);
 			}
             return rsData;
@@ -249,10 +255,10 @@ public class Db {
         return null;
 	}
 	
-	public List<Map<String, Object>> selectAll(String tableName, Map<String, Class<?>> columns) {
+	public List<Map<String, Object>> selectAll(Class<?> table, Map<String, Class<?>> columns) {
 		StringBuilder sb = new StringBuilder("Select ");
 		appendColumns(columns, sb);
-		sb.append(String.format(" FROM %s ", tableName));
+		sb.append(String.format(" FROM %s ", Db.getTableName(table)));
 		
 		List<Map<String, Object>> rsData = new ArrayList<>();
         try (Connection conn = this.connect();

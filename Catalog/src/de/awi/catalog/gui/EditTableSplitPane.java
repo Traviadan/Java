@@ -65,7 +65,7 @@ public class EditTableSplitPane extends JSplitPane {
 		table.setupColumns();
 	}
 	
-	protected void populateModel(boolean recursive, String where) {
+	protected void populateModel(boolean recursive, String[] where) {
 		if (model.joinedDataSize() > 0)	model.populate(db, true, recursive, where);
 		else model.populate(db);
 	}

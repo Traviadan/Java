@@ -63,7 +63,7 @@ public class PartStorageUnitSplitPane extends EditTableSplitPane implements Stoc
 		});
 		panelTable.setLayout(new BorderLayout(5, 5));
 		initTable(panelTable);
-		model.selectBy(db, Part.ID, 0);
+		model.selectBy(db, new String[] {Part.ID, ""+0});
 		add(panelTable);
 		
 		GridBagLayout gbl = new GridBagLayout();
@@ -83,7 +83,7 @@ public class PartStorageUnitSplitPane extends EditTableSplitPane implements Stoc
 	
 	@Override
 	public void initTable(JComponent cmp) {
-		model.populate(db, true, true, "");
+		model.populate(db, true, true, null);
 		super.initTable(cmp);
 	}
 
@@ -104,12 +104,12 @@ public class PartStorageUnitSplitPane extends EditTableSplitPane implements Stoc
 			PartStorageUnitsModel psum = (PartStorageUnitsModel)model;
 			if (event.isOutsourcing()) {
 				psum.delete(db, psu);
-				model.selectBy(db, Part.ID, 0);
+				model.selectBy(db, new String[] {Part.ID, ""+0});
 				model.fireTableDataChanged();
 			} else if (getTable().getSelectedRow() >= 0) {
 				psu.setAmount(Check.forDouble(txtFields.get(TXT_AMOUNT)));
 				psum.update(db, psu);
-				model.selectBy(db, Part.ID, psu.getId());
+				model.selectBy(db, new String[] {Part.ID, ""+psu.getId()});
 				model.fireTableDataChanged();
 			} else {
 				return;

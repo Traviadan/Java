@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,7 +21,7 @@ public class DbTableModel extends AbstractTableModel {
 	protected Map<String, Class<?>> columns = new LinkedHashMap<>();
 	protected Map<String, Boolean> visibilities = new LinkedHashMap<>();
 	protected Map<String, String> titles = new LinkedHashMap<>();
-	protected Map<String, Class<?>> joins = new LinkedHashMap<>();
+	protected Map<Class<?>, Map<String, Class<?>>> joins = new LinkedHashMap<>();
 	protected Map<String, String> constraints = new LinkedHashMap<>();
 	protected Map<String, Method> getter = new LinkedHashMap<>();
 	protected Map<String, Method> setter = new LinkedHashMap<>();
@@ -37,6 +38,7 @@ public class DbTableModel extends AbstractTableModel {
 	public DbTableModel(Class<?> c) {
 		thisClass = c;
 		initTableName();
+		initTableJoins();
 		initColumns();
 	}
 
@@ -44,8 +46,9 @@ public class DbTableModel extends AbstractTableModel {
 		return joinedData.size();
 	}
 	
-	public void selectBy(Db db, String field, Object where) {
-		populate(db, true, true, String.format("WHERE %s = %s", field, where.toString()));
+	public void selectBy(Db db, String[] where) {
+		populate(db, true, true, where);
+		//populate(db, true, true, String.format("WHERE %s = %s", field, where.toString()));
 	}
 	
 	@Override
@@ -101,10 +104,10 @@ public class DbTableModel extends AbstractTableModel {
 		return constraints;
 	}
 
-	public void populate(Db db, boolean join, boolean recursive, String where) {
+	public void populate(Db db, boolean join, boolean recursive, String[] where) {
 		if (join && joins.size() > 0) {
-			List<Map<String, Object>> rsData = db.leftJoin(tableName, columns, joins, recursive, where);
-			for (Class<?> joinClass : joins.values()) {
+			List<Map<String, Object>> rsData = db.leftJoin(thisClass, columns, joins, recursive, where);
+			for (Class<?> joinClass : joins.get(thisClass).values()) {
 				String joinTableName = Db.getTableName(joinClass);
 				List<Map<String, Object>> l = new ArrayList<>(); 
 				for (Map<String, Object> row : rsData) {
@@ -125,7 +128,7 @@ public class DbTableModel extends AbstractTableModel {
 	}
 	
 	public void populate(Db db) {
-		List<Map<String, Object>> rsData = db.selectAll(tableName, columns);
+		List<Map<String, Object>> rsData = db.selectAll(thisClass, columns);
 		populate(rsData);
 	}
 	
@@ -244,11 +247,34 @@ public class DbTableModel extends AbstractTableModel {
 		if (thisClass.isAnnotationPresent(DbTableName.class)) {
 			tableName = thisClass.getAnnotation(DbTableName.class).name();
 		}
+	}
+	
+	protected void initTableJoins() {
 		if (thisClass.isAnnotationPresent(DbTableJoin.class)) {
-			Class<?>[] joinClass = thisClass.getAnnotation(DbTableJoin.class).table();
-			String[] nameUsing = thisClass.getAnnotation(DbTableJoin.class).using();
-			for (int i = 0; i < joinClass.length; i++) {
-				joins.put(nameUsing[i], joinClass[i]);
+			//List<Map.Entry<Class<?>, Map<String, Class<?>>>> l = new ArrayList<>();
+			getJoins(thisClass);
+			
+			/*
+			for (Map.Entry<Class<?>, Map<String, Class<?>>> e : j.entrySet()) {
+				l.add(e);
+			}
+			for (int i = l.size()-1; i >= 0; i--) {
+				System.out.println(l.get(i).getKey());
+				joins.put(l.get(i).getKey(), l.get(i).getValue());
+			}
+			*/
+		}
+	}
+	
+	private void getJoins(Class<?> c) {
+		Class<?>[] joinClass = c.getAnnotation(DbTableJoin.class).table();
+		String[] nameUsing = c.getAnnotation(DbTableJoin.class).using();
+		Map<String, Class<?>> j = new HashMap<>();
+		for (int i = 0; i < joinClass.length; i++) {
+			j.put(nameUsing[i], joinClass[i]);
+			joins.put(c, j);
+			if (joinClass[i].isAnnotationPresent(DbTableJoin.class)) {
+				getJoins(joinClass[i]);
 			}
 		}
 	}

@@ -81,7 +81,7 @@ public class StorageLocationSplitPane extends EditTableSplitPane implements Stoc
 					} else {
 						model.update(db, obj);
 					}
-					populateModel(false, "");
+					populateModel(false, null);
 					model.fireTableDataChanged();
 					clearFields();
 				}
@@ -106,7 +106,7 @@ public class StorageLocationSplitPane extends EditTableSplitPane implements Stoc
 						null, null, null);
 				if(choice == JOptionPane.YES_OPTION) {
 					model.delete(db, model.getObjectAtRow(table.getSelectedRow()));
-					populateModel(false, "");
+					populateModel(false, null);
 					model.fireTableDataChanged();
 					clearFields();
 				}
@@ -121,7 +121,7 @@ public class StorageLocationSplitPane extends EditTableSplitPane implements Stoc
 	
 	@Override
 	public void initTable(JComponent cmp) {
-		model.populate(db, true, false, "");
+		model.populate(db, true, false, null);
 		super.initTable(cmp);
 	}
 
@@ -152,7 +152,7 @@ public class StorageLocationSplitPane extends EditTableSplitPane implements Stoc
 			StorageUnitTable table = StorageUnitTable.class.cast(event.getSource());
 			DbTableModel model = DbTableModel.class.cast(table.getModel());
 			model.update(db, su);
-			model.populate(db, true, false, "");
+			model.populate(db, true, false, null);
 			System.out.println(model.joinedDataSize());
 			model.fireTableDataChanged();
 		}

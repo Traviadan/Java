@@ -120,7 +120,7 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 					} else {
 						model.update(db, obj);
 					}
-					populateModel(false, "");
+					populateModel(false, null);
 					model.fireTableDataChanged();
 					clearFields();
 				}
@@ -145,7 +145,7 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 						null, null, null);
 				if(choice == JOptionPane.YES_OPTION) {
 					model.delete(db, model.getObjectAtRow(table.getSelectedRow()));
-					populateModel(false, "");
+					populateModel(false, null);
 					model.fireTableDataChanged();
 					clearFields();
 				}
@@ -160,7 +160,7 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 	
 	@Override
 	public void initTable(JComponent cmp) {
-		model.populate(db, true, false, "");
+		model.populate(db, true, false, null);
 		super.initTable(cmp);
 	}
 
@@ -197,7 +197,7 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 			DeviceTable table = DeviceTable.class.cast(event.getSource());
 			DbTableModel model = DbTableModel.class.cast(table.getModel());
 			model.update(db, d);
-			model.populate(db, true, false, "");
+			model.populate(db, true, false, null);
 			model.fireTableDataChanged();
 		} else if (event.getStockpilingObject() instanceof Part) {
 			PartTable pt = PartTable.class.cast(event.getSource());
@@ -205,7 +205,8 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 			if (!event.isOutsourcing() && getTable().getSelectedRow() >= 0) {
 				StorageUnit storageUnit = StorageUnit.class.cast(model.getObjectAtRow(getTable().getSelectedRow()));
 				PartStorageUnitsModel psum = new PartStorageUnitsModel();
-				psum.populate(db, true, false, String.format("WHERE %s = %s AND %s = %s", Part.ID, p.getId(), StorageUnit.ID, storageUnit.getId()));
+				psum.populate(db, true, false, new String[] { Part.ID, ""+p.getId(), StorageUnit.ID, ""+storageUnit.getId() });
+				//psum.populate(db, true, false, String.format("WHERE %s = %s AND %s = %s", Part.ID, p.getId(), StorageUnit.ID, storageUnit.getId()));
 				if (psum.getRowCount() > 0) {
 					PartStorageUnits psu = (PartStorageUnits)psum.getObjectAtRow(0);
 					psu.setAmount(event.getAmount());

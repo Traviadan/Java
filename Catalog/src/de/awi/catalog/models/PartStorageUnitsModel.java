@@ -32,7 +32,11 @@ public class PartStorageUnitsModel extends DbTableModel {
 	public String getColumnName(int column) {
 		if (column >= super.getColumnCount() 
 				&& joinedData.keySet().contains(StorageUnit.class)) {
-			return "Lagereinheit";
+			switch (column - super.getColumnCount()) {
+				case 0:	return "Lagereinheit";
+				case 1: return "Lagerort";
+				default: return "";
+			}
 		} else {
 			return super.getColumnName(column);
 		}
@@ -41,8 +45,18 @@ public class PartStorageUnitsModel extends DbTableModel {
 	@Override
 	public int getColumnCount() {
 		int cc = super.getColumnCount();
-		if (joinedData.size() == 0) return cc;
-		else if (joinedData.keySet().contains(StorageUnit.class)) cc++;
+		if (joinedData.size() == 0) {
+			return cc;
+		} else {
+			if (joinedData.keySet().contains(StorageUnit.class)) {
+				System.out.println("StorageUnit.class");
+				cc++;
+			}
+			if (joinedData.keySet().contains(StorageLocation.class)) {
+				System.out.println("StorageLocation.class");
+				cc++;
+			}
+		}
 		return cc;
 	}
 	
@@ -50,9 +64,18 @@ public class PartStorageUnitsModel extends DbTableModel {
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (columnIndex >= super.getColumnCount() 
 				&& joinedData.keySet().contains(StorageUnit.class)) {
-			String tableName = StorageUnit.class.getAnnotation(DbTableName.class).name();
-			List<Map<String, Object>> l = joinedData.get(StorageUnit.class);
-			return l.get(rowIndex).get(String.format("%s_%s", tableName, StorageUnit.NAME));
+			String tableName;
+			List<Map<String, Object>> l;
+			switch (columnIndex - super.getColumnCount()) {
+				case 0:	tableName = StorageUnit.class.getAnnotation(DbTableName.class).name();
+						l = joinedData.get(StorageUnit.class);
+						return l.get(rowIndex).get(String.format("%s_%s", tableName, StorageUnit.NAME));
+
+				case 1: tableName = StorageLocation.class.getAnnotation(DbTableName.class).name();
+						l = joinedData.get(StorageLocation.class);
+						return l.get(rowIndex).get(String.format("%s_%s", tableName, StorageLocation.NAME));
+				default: return null;
+			}
 		} else {
 			return super.getValueAt(rowIndex, columnIndex);
 		}
