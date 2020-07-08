@@ -5,23 +5,25 @@ import java.awt.event.MouseEvent;
 import java.util.Vector;
 
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.event.EventListenerList;
 
 import de.awi.catalog.events.StockpilingEvent;
-import de.awi.catalog.gui.MaterialTypeTableCellRenderer;
+import de.awi.catalog.gui.DeviceTypeTableCellRenderer;
+import de.awi.catalog.gui.StorageUnitTypeTableCellRenderer;
 import de.awi.catalog.interfaces.StockpilingListener;
-import de.awi.catalog.models.DeviceModel;
-import de.awi.catalog.models.Material;
-import de.awi.catalog.models.Part;
-import de.awi.catalog.models.PartModel;
+import de.awi.catalog.models.PartStorageUnits;
+import de.awi.catalog.models.PartStorageUnitsModel;
+import de.awi.catalog.models.StorageLocationModel;
+import de.awi.catalog.models.StorageUnit;
+import de.awi.catalog.models.StorageUnitModel;
 
-public class PartTable extends AbstractTable {
+public class PartStorageUnitsTable extends AbstractTable {
 	private static final long serialVersionUID = 1L;
+
 	private EventListenerList stockpilingListeners = new EventListenerList();
 	
-	public PartTable() {
+	public PartStorageUnitsTable() {
 		super();
 		setRowSelectionAllowed(true);
 	}
@@ -40,7 +42,7 @@ public class PartTable extends AbstractTable {
 	}
 	
 	public void setupColumns() {
-		PartModel model = (PartModel)getModel();
+		PartStorageUnitsModel model = (PartStorageUnitsModel)getModel();
 		Vector<Boolean> vis = model.getColumnVisibilities();
 		
 		for (String name: model.getColumnNames()) {
@@ -50,16 +52,9 @@ public class PartTable extends AbstractTable {
 				getColumnModel().getColumn(col).setMinWidth(0);
 				getColumnModel().getColumn(col).setMaxWidth(0);
 			} else {
-				if (name == Part.NAME) {
-					getColumnModel().getColumn(col).setPreferredWidth(150); // Name
-					getColumnModel().getColumn(col).setMinWidth(100);
-				} else if (name == Part.DESCRIPTION) {
-					getColumnModel().getColumn(col).setPreferredWidth(280); // Description
-					getColumnModel().getColumn(col).setMinWidth(150);
-				} else if (name == Material.TYPE) {
-					getColumnModel().getColumn(col).setPreferredWidth(90); // Material Type
-					getColumnModel().getColumn(col).setMinWidth(50);
-					getColumnModel().getColumn(col).setCellRenderer(new MaterialTypeTableCellRenderer());
+				if (name == PartStorageUnits.AMOUNT) {
+					getColumnModel().getColumn(col).setPreferredWidth(80); // Menge
+					getColumnModel().getColumn(col).setMinWidth(40);
 				}
 			}
 		}
@@ -68,26 +63,21 @@ public class PartTable extends AbstractTable {
 	public void addPopupMenu() {
         JPopupMenu popupMenu = new JPopupMenu();
         
-        JMenuItem stockpilingMenuItem = new JMenuItem("Einlagern");
+        JMenuItem stockpilingMenuItem = new JMenuItem("Lagermenge ändern");
         stockpilingMenuItem.addActionListener((e) -> {
         	if (getSelectedRow() >= 0) {
-        		String amount = JOptionPane.showInputDialog(this, "Menge");
-        		try {
-        			double a = Double.parseDouble(amount);
-        			notifyStockpiling(new StockpilingEvent(this, PartModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), a, false));
-        		} catch (NullPointerException | NumberFormatException ex) {
-        			return;
-        		}
-        		
+        		notifyStockpiling(new StockpilingEvent(this, PartStorageUnitsModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), false));
         	}
         });
         popupMenu.add(stockpilingMenuItem);
 
-        JMenuItem deleteMenuItem = new JMenuItem("Löschen");
-        deleteMenuItem.addActionListener((e) -> {
-        		System.out.println("Deleting...");
+        JMenuItem outsourceMenuItem = new JMenuItem("Auslagern");
+        outsourceMenuItem.addActionListener((e) -> {
+        	if (getSelectedRow() >= 0) {
+        		notifyStockpiling(new StockpilingEvent(this, PartStorageUnitsModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), true));
+        	}
         });
-        popupMenu.add(deleteMenuItem);
+        popupMenu.add(outsourceMenuItem);
 
         this.addMouseListener(new MouseAdapter() {
             @Override

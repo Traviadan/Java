@@ -21,8 +21,13 @@ public class WindowFrame extends JFrame {
 		setLocationRelativeTo(null);
 		
 	    addWindowListener(new DialogWindowClosingListener());
+	    addWindowListener(new WindowOpenedListener());
 	}
 
+	protected void opened() {
+		// Stub function
+	}
+	
 	protected void close() {
 		dispose();
 	}

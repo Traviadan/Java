@@ -14,10 +14,15 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import de.awi.catalog.DeviceTable;
+import de.awi.catalog.PartStorageUnitsTable;
+import de.awi.catalog.PartTable;
 import de.awi.catalog.StorageUnitTable;
 import de.awi.catalog.events.StockpilingEvent;
 import de.awi.catalog.interfaces.StockpilingListener;
 import de.awi.catalog.models.Device;
+import de.awi.catalog.models.Part;
+import de.awi.catalog.models.PartStorageUnits;
+import de.awi.catalog.models.PartStorageUnitsModel;
 import de.awi.catalog.models.StorageUnit;
 import de.awi.catalog.models.StorageUnitModel;
 import de.traviadan.lib.db.Db;
@@ -115,7 +120,7 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 					} else {
 						model.update(db, obj);
 					}
-					populateModel(false);
+					populateModel(false, "");
 					model.fireTableDataChanged();
 					clearFields();
 				}
@@ -140,7 +145,7 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 						null, null, null);
 				if(choice == JOptionPane.YES_OPTION) {
 					model.delete(db, model.getObjectAtRow(table.getSelectedRow()));
-					populateModel(false);
+					populateModel(false, "");
 					model.fireTableDataChanged();
 					clearFields();
 				}
@@ -155,7 +160,7 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 	
 	@Override
 	public void initTable(JComponent cmp) {
-		model.populate(db, true, false);
+		model.populate(db, true, false, "");
 		super.initTable(cmp);
 	}
 
@@ -192,8 +197,32 @@ public class StorageUnitSplitPane extends EditTableSplitPane implements Stockpil
 			DeviceTable table = DeviceTable.class.cast(event.getSource());
 			DbTableModel model = DbTableModel.class.cast(table.getModel());
 			model.update(db, d);
-			model.populate(db, true, false);
+			model.populate(db, true, false, "");
 			model.fireTableDataChanged();
+		} else if (event.getStockpilingObject() instanceof Part) {
+			PartTable pt = PartTable.class.cast(event.getSource());
+			Part p = Part.class.cast(event.getStockpilingObject());
+			if (!event.isOutsourcing() && getTable().getSelectedRow() >= 0) {
+				StorageUnit storageUnit = StorageUnit.class.cast(model.getObjectAtRow(getTable().getSelectedRow()));
+				PartStorageUnitsModel psum = new PartStorageUnitsModel();
+				psum.populate(db, true, false, String.format("WHERE %s = %s AND %s = %s", Part.ID, p.getId(), StorageUnit.ID, storageUnit.getId()));
+				if (psum.getRowCount() > 0) {
+					PartStorageUnits psu = (PartStorageUnits)psum.getObjectAtRow(0);
+					psu.setAmount(event.getAmount());
+					psum.update(db, psu);
+				} else {
+					PartStorageUnits psu = new PartStorageUnits();
+					psu.setId(p.getId());
+					psu.setStorageUnitId(storageUnit.getId());
+					psu.setAmount(event.getAmount());
+					psum.insert(db, psu);
+				}
+				int i = pt.getSelectedRow();
+				pt.clearSelection();
+				pt.setRowSelectionInterval(i, i);
+			} else {
+				return;
+			}
 		}
 	}
 

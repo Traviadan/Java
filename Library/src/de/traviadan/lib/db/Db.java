@@ -211,7 +211,7 @@ public class Db {
 		return sb.toString();
 	}
 	
-	public List<Map<String, Object>> leftJoin(String tableName, Map<String, Class<?>> columns, Map<String, Class<?>> joins, boolean recursive) {
+	public List<Map<String, Object>> leftJoin(String tableName, Map<String, Class<?>> columns, Map<String, Class<?>> joins, boolean recursive, String where) {
 		StringBuilder sb = new StringBuilder("Select ");
 		appendColumns(columns, tableName, sb);
 
@@ -220,6 +220,7 @@ public class Db {
 		sb.append(buildLeftJoin(joins, joinColumns, sbJoins, recursive));
 		sb.append(String.format(" FROM %s", tableName));
 		sb.append(sbJoins.toString());
+		if (!where.isBlank()) sb.append(" " + where);
 		
 		List<Map<String, Object>> rsData = new ArrayList<>();
         try (Connection conn = this.connect();

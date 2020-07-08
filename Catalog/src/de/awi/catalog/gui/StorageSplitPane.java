@@ -81,7 +81,7 @@ public class StorageSplitPane extends EditTableSplitPane implements StockpilingL
 					} else {
 						model.update(db, obj);
 					}
-					populateModel(false);
+					populateModel(false, "");
 					model.fireTableDataChanged();
 					clearFields();
 				}
@@ -106,7 +106,7 @@ public class StorageSplitPane extends EditTableSplitPane implements StockpilingL
 						null, null, null);
 				if(choice == JOptionPane.YES_OPTION) {
 					model.delete(db, model.getObjectAtRow(table.getSelectedRow()));
-					populateModel(false);
+					populateModel(false, "");
 					model.fireTableDataChanged();
 					clearFields();
 				}
@@ -150,7 +150,7 @@ public class StorageSplitPane extends EditTableSplitPane implements StockpilingL
 			StorageLocationTable table = StorageLocationTable.class.cast(event.getSource());
 			DbTableModel model = DbTableModel.class.cast(table.getModel());
 			model.update(db, sl);
-			model.populate(db, true, false);
+			model.populate(db, true, false, "");
 			model.fireTableDataChanged();
 		}
 	}

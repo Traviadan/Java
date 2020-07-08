@@ -149,7 +149,7 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 					} else {
 						model.update(db, d);
 					}
-					populateModel(false);
+					populateModel(false, "");
 					model.fireTableDataChanged();
 				}
 	        }  
@@ -173,7 +173,7 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 						null, null, null);
 				if(choice == JOptionPane.YES_OPTION) {
 					model.delete(db, model.getObjectAtRow(table.getSelectedRow()));
-					populateModel(false);
+					populateModel(false, "");
 					model.fireTableDataChanged();
 				}
 	        }  
@@ -187,7 +187,7 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 	
 	@Override
 	public void initTable(JComponent cmp) {
-		model.populate(db, true, false);
+		model.populate(db, true, false, "");
 		super.initTable(cmp);
 	}
 	

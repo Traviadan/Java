@@ -44,6 +44,10 @@ public class DbTableModel extends AbstractTableModel {
 		return joinedData.size();
 	}
 	
+	public void selectBy(Db db, String field, Object where) {
+		populate(db, true, true, String.format("WHERE %s = %s", field, where.toString()));
+	}
+	
 	@Override
 	public int findColumn(String name) {
 		int found = -1;
@@ -97,9 +101,9 @@ public class DbTableModel extends AbstractTableModel {
 		return constraints;
 	}
 
-	public void populate(Db db, boolean join, boolean recursive) {
+	public void populate(Db db, boolean join, boolean recursive, String where) {
 		if (join && joins.size() > 0) {
-			List<Map<String, Object>> rsData = db.leftJoin(tableName, columns, joins, recursive);
+			List<Map<String, Object>> rsData = db.leftJoin(tableName, columns, joins, recursive, where);
 			for (Class<?> joinClass : joins.values()) {
 				String joinTableName = Db.getTableName(joinClass);
 				List<Map<String, Object>> l = new ArrayList<>(); 

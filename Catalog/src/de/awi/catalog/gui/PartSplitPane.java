@@ -16,6 +16,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
 import de.awi.catalog.DeviceTable;
+import de.awi.catalog.PartStorageUnitsTable;
 import de.awi.catalog.PartTable;
 import de.awi.catalog.events.StockpilingEvent;
 import de.awi.catalog.interfaces.StockpilingListener;
@@ -39,6 +40,8 @@ public class PartSplitPane extends EditTableSplitPane implements StockpilingList
 	private static final long serialVersionUID = 1L;
 
 	private JComboBox<Material.Type> cmbType = new JComboBox<Material.Type>();
+	PartStorageUnitSplitPane psuPane;
+	JSplitPane splitEdit;
 	
 	public PartSplitPane(Db dataBase) {
 		super(dataBase, JSplitPane.VERTICAL_SPLIT);
@@ -46,7 +49,6 @@ public class PartSplitPane extends EditTableSplitPane implements StockpilingList
 	}
 	
 	private void init() {
-		setDividerLocation(300);
 		model = new PartModel();
 		model.addTableModelListener(new TableModelListener() {
 			@Override
@@ -59,15 +61,16 @@ public class PartSplitPane extends EditTableSplitPane implements StockpilingList
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				if (!e.getValueIsAdjusting() && table.getSelectedRow() >= 0) {
-					updateFields((Part)model.getObjectAtRow(table.getSelectedRow()));
+					Part p = (Part)model.getObjectAtRow(table.getSelectedRow());
+					updateFields(p);
+					psuPane.model.selectBy(db, Part.ID, p.getId());
+					psuPane.model.fireTableDataChanged();
 				}
-				
 			}
 		});
 		panelTable.setLayout(new BorderLayout(5, 5));
 		initTable(panelTable);
 		add(panelTable);
-		
 		
 		GridBagLayout gbl = new GridBagLayout();
 		panelEdit.setLayout(gbl);
@@ -125,7 +128,7 @@ public class PartSplitPane extends EditTableSplitPane implements StockpilingList
 					} else {
 						model.update(db, p);
 					}
-					populateModel(true);
+					populateModel(false, "");
 					model.fireTableDataChanged();
 				}
 	        }  
@@ -149,25 +152,44 @@ public class PartSplitPane extends EditTableSplitPane implements StockpilingList
 						null, null, null);
 				if(choice == JOptionPane.YES_OPTION) {
 					model.delete(db, model.getObjectAtRow(table.getSelectedRow()));
-					populateModel(true);
+					populateModel(false, "");
 					model.fireTableDataChanged();
 				}
 	        }  
 	    });
 		addCommandButtons(panelEdit, gbl, 10);
 		
-		add(panelEdit);
+		splitEdit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		splitEdit.add(panelEdit);
+		
+		psuPane = new PartStorageUnitSplitPane(db);
+		
+		splitEdit.add(psuPane);
+		
+		add(splitEdit);
+		//setDividerLocation(400);
+		//splitEdit.setDividerLocation(700);
+		
+		PartTable.class.cast(getTable()).addPopupMenu();
+	}
+	
+	public void setDividers() {
+		setDividerLocation(0.6);
+		splitEdit.setDividerLocation(0.7);
+		psuPane.setDividers();
 	}
 	
 	@Override
 	public void initTable(JComponent cmp) {
-		model.populate(db, true, false);
+		model.populate(db, false, false, "");
 		super.initTable(cmp);
 	}
 	
 	@Override
 	public void clearFields() {
 		cmbType.setSelectedIndex(0);
+		psuPane.model.selectBy(db, Part.ID, 0);
+		psuPane.model.fireTableDataChanged();
 		super.clearFields();
 	}
 	

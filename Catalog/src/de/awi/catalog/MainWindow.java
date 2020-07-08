@@ -31,6 +31,7 @@ import de.awi.catalog.gui.StorageSplitPane;
 import de.awi.catalog.gui.StorageUnitSplitPane;
 import de.awi.catalog.models.DeviceModel;
 import de.awi.catalog.models.PartModel;
+import de.awi.catalog.models.PartStorageUnitsModel;
 import de.awi.catalog.models.StorageLocationModel;
 import de.awi.catalog.models.StorageModel;
 import de.awi.catalog.models.StorageUnitModel;
@@ -55,6 +56,9 @@ public class MainWindow extends WindowFrame{
 	private StorageUnitModel storageUnitModel;
 	private StorageLocationModel storageLocationModel;
 	private StorageModel storageModel;
+	private PartStorageUnitsModel partStorageUnits;
+	
+	private PartSplitPane partPane;
 	
 	public MainWindow() {
 		super();
@@ -87,8 +91,15 @@ public class MainWindow extends WindowFrame{
 		storageModel.createDbTable(db);
 		storageLocationModel = new StorageLocationModel();
 		storageLocationModel.createDbTable(db);
+		partStorageUnits = new PartStorageUnitsModel();
+		partStorageUnits.createDbTable(db);
 		
 		init();
+	}
+	
+	@Override
+	protected void opened() {
+		partPane.setDividers();
 	}
 	
 	private void init() {
@@ -195,16 +206,17 @@ public class MainWindow extends WindowFrame{
 	private void initContent() {
 		JTabbedPane tabbedPane = new JTabbedPane();
 		
-		PartSplitPane partPane = new PartSplitPane(db);
+		partPane = new PartSplitPane(db);
 		
 		DeviceSplitPane devicePane = new DeviceSplitPane(db);
 
 		StorageUnitSplitPane storageUnitPane = new StorageUnitSplitPane(db);
 		DeviceTable.class.cast(devicePane.getTable()).addStockpilingListener(storageUnitPane);
+		PartTable.class.cast(partPane.getTable()).addStockpilingListener(storageUnitPane);
 
 		StorageLocationSplitPane storagelocationPane = new StorageLocationSplitPane(db);
 		StorageUnitTable.class.cast(storageUnitPane.getTable()).addStockpilingListener(storagelocationPane);
-
+		
 		StorageSplitPane storagePane = new StorageSplitPane(db);
 		StorageLocationTable.class.cast(storagelocationPane.getTable()).addStockpilingListener(storagePane);
 		
