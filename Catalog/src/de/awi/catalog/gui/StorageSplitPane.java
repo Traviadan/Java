@@ -12,8 +12,6 @@ import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import de.awi.catalog.StorageLocationTable;
-import de.awi.catalog.StorageTable;
 import de.awi.catalog.events.StockpilingEvent;
 import de.awi.catalog.interfaces.StockpilingListener;
 import de.awi.catalog.models.Storage;

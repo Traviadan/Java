@@ -1,15 +1,9 @@
 package de.awi.catalog;
 
 import java.nio.file.Paths;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.util.Enumeration;
 
 import javax.swing.SwingUtilities;
 
-import de.awi.catalog.models.Device;
-import de.awi.catalog.models.DeviceModel;
-import de.traviadan.lib.db.Db;
 import de.traviadan.lib.helper.Log;
 import de.traviadan.lib.helper.SysProps;
 
@@ -33,8 +27,8 @@ public class Launcher {
 			}
 		});
 		
-		for ( Enumeration<Driver> e = DriverManager.getDrivers(); e.hasMoreElements(); )
-			  System.out.println( e.nextElement().getClass().getName() );
+		//for ( Enumeration<Driver> e = DriverManager.getDrivers(); e.hasMoreElements(); )
+		//	  System.out.println( e.nextElement().getClass().getName() );
 
 		/*
 		Db db = new Db("catalog.db");

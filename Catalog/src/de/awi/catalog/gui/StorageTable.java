@@ -1,9 +1,10 @@
-package de.awi.catalog;
+package de.awi.catalog.gui;
 
 import java.util.Vector;
 
-import de.awi.catalog.models.StorageLocation;
-import de.awi.catalog.models.StorageLocationModel;
+import javax.swing.event.ListSelectionListener;
+
+import de.awi.catalog.models.Storage;
 import de.awi.catalog.models.StorageModel;
 
 public class StorageTable extends AbstractTable {
@@ -25,16 +26,22 @@ public class StorageTable extends AbstractTable {
 				getColumnModel().getColumn(col).setMinWidth(0);
 				getColumnModel().getColumn(col).setMaxWidth(0);
 			} else {
-				if (name == StorageLocation.NAME) {
+				if (name == Storage.NAME) {
 					getColumnModel().getColumn(col).setPreferredWidth(150); // Name
 					getColumnModel().getColumn(col).setMinWidth(100);
 					getColumnModel().getColumn(col).setMaxWidth(200);
-				} else if (name == StorageLocation.DESCRIPTION) {
+				} else if (name == Storage.DESCRIPTION) {
 					getColumnModel().getColumn(col).setPreferredWidth(280); // Description
 					getColumnModel().getColumn(col).setMinWidth(150);
 				}
 			}
 		}
+	}
+
+	@Override
+	public ListSelectionListener getListSelectionListener() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

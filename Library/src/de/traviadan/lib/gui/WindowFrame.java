@@ -16,7 +16,7 @@ public class WindowFrame extends JFrame {
 		initFrame();
 	}
 	
-	private void initFrame() {
+	protected void initFrame() {
 		// Fenster mittig vom Bildschirm
 		setLocationRelativeTo(null);
 		
@@ -25,6 +25,10 @@ public class WindowFrame extends JFrame {
 	}
 
 	protected void opened() {
+		// Stub function
+	}
+	
+	protected void closed() {
 		// Stub function
 	}
 	

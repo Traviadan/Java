@@ -1,4 +1,4 @@
-package de.awi.catalog;
+package de.awi.catalog.gui;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -7,19 +7,20 @@ import java.util.Vector;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.event.EventListenerList;
+import javax.swing.event.ListSelectionListener;
 
 import de.awi.catalog.events.StockpilingEvent;
-import de.awi.catalog.gui.DeviceProtectionTableCellRenderer;
-import de.awi.catalog.gui.DeviceTypeTableCellRenderer;
 import de.awi.catalog.interfaces.StockpilingListener;
-import de.awi.catalog.models.Device;
-import de.awi.catalog.models.DeviceModel;
+import de.awi.catalog.models.StorageLocationModel;
+import de.awi.catalog.models.StorageUnit;
+import de.awi.catalog.models.StorageUnitModel;
 
-public class DeviceTable extends AbstractTable {
+public class StorageUnitTable extends AbstractTable {
 	private static final long serialVersionUID = 1L;
+
 	private EventListenerList stockpilingListeners = new EventListenerList();
 	
-	public DeviceTable() {
+	public StorageUnitTable() {
 		super();
 		setRowSelectionAllowed(true);
 	}
@@ -38,7 +39,7 @@ public class DeviceTable extends AbstractTable {
 	}
 	
 	public void setupColumns() {
-		DeviceModel model = (DeviceModel)getModel();
+		StorageUnitModel model = (StorageUnitModel)getModel();
 		Vector<Boolean> vis = model.getColumnVisibilities();
 		
 		for (String name: model.getColumnNames()) {
@@ -48,23 +49,16 @@ public class DeviceTable extends AbstractTable {
 				getColumnModel().getColumn(col).setMinWidth(0);
 				getColumnModel().getColumn(col).setMaxWidth(0);
 			} else {
-				if (name == Device.NAME) {
+				if (name == StorageUnit.NAME) {
 					getColumnModel().getColumn(col).setPreferredWidth(150); // Name
 					getColumnModel().getColumn(col).setMinWidth(100);
-				} else if (name == Device.DESCRIPTION) {
+				} else if (name == StorageUnit.DESCRIPTION) {
 					getColumnModel().getColumn(col).setPreferredWidth(280); // Description
 					getColumnModel().getColumn(col).setMinWidth(150);
-				} else if (name == Device.UNITNR) {
-					getColumnModel().getColumn(col).setPreferredWidth(80); // Identnr
-					getColumnModel().getColumn(col).setMinWidth(50);
-				} else if (name == Device.TYPE) {
-					getColumnModel().getColumn(col).setPreferredWidth(90); // Device Type
-					getColumnModel().getColumn(col).setMinWidth(50);
-					getColumnModel().getColumn(col).setCellRenderer(new DeviceTypeTableCellRenderer());
-				} else if (name == Device.PROTECTION) {
-					getColumnModel().getColumn(col).setPreferredWidth(120); // Protection
+				} else if (name == StorageUnit.TYPE) {
+					getColumnModel().getColumn(col).setPreferredWidth(100); // StorageUnit Type
 					getColumnModel().getColumn(col).setMinWidth(70);
-					getColumnModel().getColumn(col).setCellRenderer(new DeviceProtectionTableCellRenderer());
+					getColumnModel().getColumn(col).setCellRenderer(new StorageUnitTypeTableCellRenderer());
 				}
 			}
 		}
@@ -73,27 +67,21 @@ public class DeviceTable extends AbstractTable {
 	public void addPopupMenu() {
         JPopupMenu popupMenu = new JPopupMenu();
         
-        JMenuItem stockpilingMenuItem = new JMenuItem("Einpacken");
+        JMenuItem stockpilingMenuItem = new JMenuItem("Einlagern");
         stockpilingMenuItem.addActionListener((e) -> {
         	if (getSelectedRow() >= 0) {
-        		notifyStockpiling(new StockpilingEvent(this, DeviceModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), false));
+        		notifyStockpiling(new StockpilingEvent(this, StorageUnitModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), false));
         	}
         });
         popupMenu.add(stockpilingMenuItem);
 
-        JMenuItem outsourceMenuItem = new JMenuItem("Auspacken");
+        JMenuItem outsourceMenuItem = new JMenuItem("Auslagern");
         outsourceMenuItem.addActionListener((e) -> {
         	if (getSelectedRow() >= 0) {
-        		notifyStockpiling(new StockpilingEvent(this, DeviceModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), true));
+        		notifyStockpiling(new StockpilingEvent(this, StorageUnitModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), true));
         	}
         });
         popupMenu.add(outsourceMenuItem);
-
-        JMenuItem maximizeMenuItem = new JMenuItem("Löschen");
-        maximizeMenuItem.addActionListener((e) -> {
-        		System.out.println("Deleting...");
-        });
-        popupMenu.add(maximizeMenuItem);
 
         this.addMouseListener(new MouseAdapter() {
             @Override
@@ -104,4 +92,10 @@ public class DeviceTable extends AbstractTable {
             }
         });
     }
+
+	@Override
+	public ListSelectionListener getListSelectionListener() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

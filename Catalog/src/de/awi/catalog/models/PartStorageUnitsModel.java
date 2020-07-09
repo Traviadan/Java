@@ -5,7 +5,6 @@ import java.util.Map;
 
 import de.traviadan.lib.db.Db;
 import de.traviadan.lib.db.DbTableModel;
-import de.traviadan.lib.db.DbTableName;
 
 public class PartStorageUnitsModel extends DbTableModel {
 	private static final long serialVersionUID = 1L;
@@ -31,7 +30,7 @@ public class PartStorageUnitsModel extends DbTableModel {
 	@Override
 	public String getColumnName(int column) {
 		if (column >= super.getColumnCount() 
-				&& joinedData.keySet().contains(StorageUnit.class)) {
+				&& joinedData.size() > 0) {
 			switch (column - super.getColumnCount()) {
 				case 0:	return "Lagereinheit";
 				case 1: return "Lagerort";
@@ -49,15 +48,9 @@ public class PartStorageUnitsModel extends DbTableModel {
 		if (joinedData.size() == 0) {
 			return cc;
 		} else {
-			if (joinedData.keySet().contains(StorageUnit.class)) {
-				cc++;
-			}
-			if (joinedData.keySet().contains(StorageLocation.class)) {
-				cc++;
-			}
-			if (joinedData.keySet().contains(Storage.class)) {
-				cc++;
-			}
+			if (joinedData.keySet().contains(StorageUnit.class)) cc++;
+			if (joinedData.keySet().contains(StorageLocation.class)) cc++;
+			if (joinedData.keySet().contains(Storage.class)) cc++;
 		}
 		return cc;
 	}
@@ -65,20 +58,16 @@ public class PartStorageUnitsModel extends DbTableModel {
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (columnIndex >= super.getColumnCount() 
-				&& joinedData.keySet().contains(StorageUnit.class)) {
-			String tableName;
+				&& joinedData.size() > 0) {
 			List<Map<String, Object>> l;
 			switch (columnIndex - super.getColumnCount()) {
-				case 0:	tableName = Db.getTableName(StorageUnit.class);
-						l = joinedData.get(StorageUnit.class);
-						return l.get(rowIndex).get(String.format("%s_%s", tableName, StorageUnit.NAME));
+				case 0:	l = joinedData.get(StorageUnit.class);
+						return l.get(rowIndex).get(String.format("%s_%s", Db.getTableName(StorageUnit.class), StorageUnit.NAME));
 
-				case 1: tableName = Db.getTableName(StorageLocation.class);
-						l = joinedData.get(StorageLocation.class);
-						return l.get(rowIndex).get(String.format("%s_%s", tableName, StorageLocation.NAME));
-				case 2: tableName = Db.getTableName(Storage.class);
-						l = joinedData.get(Storage.class);
-						return l.get(rowIndex).get(String.format("%s_%s", tableName, Storage.NAME));
+				case 1: l = joinedData.get(StorageLocation.class);
+						return l.get(rowIndex).get(String.format("%s_%s", Db.getTableName(StorageLocation.class), StorageLocation.NAME));
+				case 2: l = joinedData.get(Storage.class);
+						return l.get(rowIndex).get(String.format("%s_%s", Db.getTableName(Storage.class), Storage.NAME));
 				default: return null;
 			}
 		} else {

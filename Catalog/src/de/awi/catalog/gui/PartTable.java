@@ -1,27 +1,28 @@
-package de.awi.catalog;
+package de.awi.catalog.gui;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Vector;
 
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.event.EventListenerList;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import de.awi.catalog.events.StockpilingEvent;
-import de.awi.catalog.gui.DeviceTypeTableCellRenderer;
-import de.awi.catalog.gui.StorageUnitTypeTableCellRenderer;
 import de.awi.catalog.interfaces.StockpilingListener;
-import de.awi.catalog.models.StorageLocationModel;
-import de.awi.catalog.models.StorageUnit;
-import de.awi.catalog.models.StorageUnitModel;
+import de.awi.catalog.models.Material;
+import de.awi.catalog.models.Part;
+import de.awi.catalog.models.PartModel;
 
-public class StorageUnitTable extends AbstractTable {
+public class PartTable extends AbstractTable {
 	private static final long serialVersionUID = 1L;
-
 	private EventListenerList stockpilingListeners = new EventListenerList();
 	
-	public StorageUnitTable() {
+	public PartTable() {
 		super();
 		setRowSelectionAllowed(true);
 	}
@@ -40,7 +41,7 @@ public class StorageUnitTable extends AbstractTable {
 	}
 	
 	public void setupColumns() {
-		StorageUnitModel model = (StorageUnitModel)getModel();
+		PartModel model = (PartModel)getModel();
 		Vector<Boolean> vis = model.getColumnVisibilities();
 		
 		for (String name: model.getColumnNames()) {
@@ -50,45 +51,39 @@ public class StorageUnitTable extends AbstractTable {
 				getColumnModel().getColumn(col).setMinWidth(0);
 				getColumnModel().getColumn(col).setMaxWidth(0);
 			} else {
-				if (name == StorageUnit.NAME) {
+				if (name == Part.NAME) {
 					getColumnModel().getColumn(col).setPreferredWidth(150); // Name
 					getColumnModel().getColumn(col).setMinWidth(100);
-				} else if (name == StorageUnit.DESCRIPTION) {
+				} else if (name == Part.DESCRIPTION) {
 					getColumnModel().getColumn(col).setPreferredWidth(280); // Description
 					getColumnModel().getColumn(col).setMinWidth(150);
-				} else if (name == StorageUnit.TYPE) {
-					getColumnModel().getColumn(col).setPreferredWidth(100); // StorageUnit Type
-					getColumnModel().getColumn(col).setMinWidth(70);
-					getColumnModel().getColumn(col).setCellRenderer(new StorageUnitTypeTableCellRenderer());
+				} else if (name == Material.TYPE) {
+					getColumnModel().getColumn(col).setPreferredWidth(90); // Material Type
+					getColumnModel().getColumn(col).setMinWidth(50);
+					getColumnModel().getColumn(col).setCellRenderer(new MaterialTypeTableCellRenderer());
 				}
 			}
 		}
 	}
 	
 	public void addPopupMenu() {
-        JPopupMenu popupMenu = new JPopupMenu();
+        popupMenu = new JPopupMenu();
         
-        JMenuItem stockpilingMenuItem = new JMenuItem("Einlagern");
+        stockpilingMenuItem = new JMenuItem("Einlagern");
+        stockpilingMenuItem.setEnabled(false);
         stockpilingMenuItem.addActionListener((e) -> {
         	if (getSelectedRow() >= 0) {
-        		notifyStockpiling(new StockpilingEvent(this, StorageUnitModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), false));
+        		String amount = JOptionPane.showInputDialog(this, "Menge");
+        		try {
+        			double a = Double.parseDouble(amount);
+        			notifyStockpiling(new StockpilingEvent(this, PartModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), a, false));
+        		} catch (NullPointerException | NumberFormatException ex) {
+        			return;
+        		}
+        		
         	}
         });
         popupMenu.add(stockpilingMenuItem);
-
-        JMenuItem outsourceMenuItem = new JMenuItem("Auslagern");
-        outsourceMenuItem.addActionListener((e) -> {
-        	if (getSelectedRow() >= 0) {
-        		notifyStockpiling(new StockpilingEvent(this, StorageUnitModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), true));
-        	}
-        });
-        popupMenu.add(outsourceMenuItem);
-
-        JMenuItem maximizeMenuItem = new JMenuItem("Löschen");
-        maximizeMenuItem.addActionListener((e) -> {
-        		System.out.println("Deleting...");
-        });
-        popupMenu.add(maximizeMenuItem);
 
         this.addMouseListener(new MouseAdapter() {
             @Override
@@ -99,4 +94,22 @@ public class StorageUnitTable extends AbstractTable {
             }
         });
     }
+
+	@Override
+	public ListSelectionListener getListSelectionListener() {
+		return new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				if (!e.getValueIsAdjusting()) {
+					if (e.getSource() instanceof DefaultListSelectionModel) {
+						if (((DefaultListSelectionModel)e.getSource()).getSelectedItemsCount() == 0) {
+							stockpilingMenuItem.setEnabled(false);
+						} else {
+							stockpilingMenuItem.setEnabled(true);
+						}
+					}
+				}
+			}
+		};
+	}
 }

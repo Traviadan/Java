@@ -16,8 +16,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.event.EventListenerList;
+import javax.swing.event.ListSelectionListener;
 
-import de.awi.catalog.AbstractTable;
 import de.traviadan.lib.db.Db;
 import de.traviadan.lib.db.DbTableModel;
 
@@ -50,12 +50,20 @@ public class EditTableSplitPane extends JSplitPane {
 		return table;
 	}
 	
+	public DbTableModel getModel() {
+		return model;
+	}
+	
 	public JPanel getPanelTable() {
 		return panelTable;
 	}
 	
 	public JPanel getPanelEdit() {
 		return panelEdit;
+	}
+	
+	public void addListSelectionListener(ListSelectionListener listener) {
+		getTable().getSelectionModel().addListSelectionListener(listener);
 	}
 
 	protected void initTable(JComponent cmp) {
@@ -80,7 +88,7 @@ public class EditTableSplitPane extends JSplitPane {
 		GridBagConstraints gbc;
 		JLabel label = new JLabel(labelText); // Label für das Texteingabefeld
 		gbc = new GridBagConstraints();
-		gbc.fill = GridBagConstraints.NONE;
+		gbc.fill = fill;
 		gbc.gridx = gridx; gbc.gridy = gridy;
 		gbc.gridwidth = 1; gbc.gridheight = 1;
 		gbc.weightx = 0.5; gbc.weighty = 0;
@@ -110,7 +118,7 @@ public class EditTableSplitPane extends JSplitPane {
 		GridBagConstraints gbc;
 		JLabel label = new JLabel(labelText); // Label für die ComboBox
 		gbc = new GridBagConstraints();
-		gbc.fill = GridBagConstraints.NONE;
+		gbc.fill = fill;
 		gbc.gridx = gridx; gbc.gridy = gridy;
 		gbc.gridwidth = 1; gbc.gridheight = 1;
 		gbc.weightx = 0.5; gbc.weighty = 0;

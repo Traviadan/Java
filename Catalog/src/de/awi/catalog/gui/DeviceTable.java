@@ -1,27 +1,26 @@
-package de.awi.catalog;
+package de.awi.catalog.gui;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Vector;
 
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.event.EventListenerList;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import de.awi.catalog.events.StockpilingEvent;
-import de.awi.catalog.gui.MaterialTypeTableCellRenderer;
 import de.awi.catalog.interfaces.StockpilingListener;
+import de.awi.catalog.models.Device;
 import de.awi.catalog.models.DeviceModel;
-import de.awi.catalog.models.Material;
-import de.awi.catalog.models.Part;
-import de.awi.catalog.models.PartModel;
 
-public class PartTable extends AbstractTable {
+public class DeviceTable extends AbstractTable {
 	private static final long serialVersionUID = 1L;
 	private EventListenerList stockpilingListeners = new EventListenerList();
 	
-	public PartTable() {
+	public DeviceTable() {
 		super();
 		setRowSelectionAllowed(true);
 	}
@@ -40,7 +39,7 @@ public class PartTable extends AbstractTable {
 	}
 	
 	public void setupColumns() {
-		PartModel model = (PartModel)getModel();
+		DeviceModel model = (DeviceModel)getModel();
 		Vector<Boolean> vis = model.getColumnVisibilities();
 		
 		for (String name: model.getColumnNames()) {
@@ -50,44 +49,66 @@ public class PartTable extends AbstractTable {
 				getColumnModel().getColumn(col).setMinWidth(0);
 				getColumnModel().getColumn(col).setMaxWidth(0);
 			} else {
-				if (name == Part.NAME) {
+				if (name == Device.NAME) {
 					getColumnModel().getColumn(col).setPreferredWidth(150); // Name
 					getColumnModel().getColumn(col).setMinWidth(100);
-				} else if (name == Part.DESCRIPTION) {
+				} else if (name == Device.DESCRIPTION) {
 					getColumnModel().getColumn(col).setPreferredWidth(280); // Description
 					getColumnModel().getColumn(col).setMinWidth(150);
-				} else if (name == Material.TYPE) {
-					getColumnModel().getColumn(col).setPreferredWidth(90); // Material Type
+				} else if (name == Device.UNITNR) {
+					getColumnModel().getColumn(col).setPreferredWidth(80); // Identnr
 					getColumnModel().getColumn(col).setMinWidth(50);
-					getColumnModel().getColumn(col).setCellRenderer(new MaterialTypeTableCellRenderer());
+				} else if (name == Device.TYPE) {
+					getColumnModel().getColumn(col).setPreferredWidth(90); // Device Type
+					getColumnModel().getColumn(col).setMinWidth(50);
+					getColumnModel().getColumn(col).setCellRenderer(new DeviceTypeTableCellRenderer());
+				} else if (name == Device.PROTECTION) {
+					getColumnModel().getColumn(col).setPreferredWidth(120); // Protection
+					getColumnModel().getColumn(col).setMinWidth(70);
+					getColumnModel().getColumn(col).setCellRenderer(new DeviceProtectionTableCellRenderer());
 				}
 			}
 		}
 	}
 	
+	@Override
+	public ListSelectionListener getListSelectionListener() {
+		return new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				if (!e.getValueIsAdjusting()) {
+					if (e.getSource() instanceof DefaultListSelectionModel) {
+						if (((DefaultListSelectionModel)e.getSource()).getSelectedItemsCount() == 0) {
+							stockpilingMenuItem.setEnabled(false);
+						} else {
+							stockpilingMenuItem.setEnabled(true);
+						}
+					}
+				}
+			}
+		};
+	}
+	
 	public void addPopupMenu() {
-        JPopupMenu popupMenu = new JPopupMenu();
+        popupMenu = new JPopupMenu();
         
-        JMenuItem stockpilingMenuItem = new JMenuItem("Einlagern");
+        stockpilingMenuItem = new JMenuItem("Einpacken");
+        stockpilingMenuItem.setToolTipText("Das Gerät in die asugewählte Lagereinheit einpacken");
         stockpilingMenuItem.addActionListener((e) -> {
         	if (getSelectedRow() >= 0) {
-        		String amount = JOptionPane.showInputDialog(this, "Menge");
-        		try {
-        			double a = Double.parseDouble(amount);
-        			notifyStockpiling(new StockpilingEvent(this, PartModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), a, false));
-        		} catch (NullPointerException | NumberFormatException ex) {
-        			return;
-        		}
-        		
+        		notifyStockpiling(new StockpilingEvent(this, DeviceModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), false));
         	}
         });
+        stockpilingMenuItem.setEnabled(false);
         popupMenu.add(stockpilingMenuItem);
 
-        JMenuItem deleteMenuItem = new JMenuItem("Löschen");
-        deleteMenuItem.addActionListener((e) -> {
-        		System.out.println("Deleting...");
+        outsourceMenuItem = new JMenuItem("Auspacken");
+        outsourceMenuItem.addActionListener((e) -> {
+        	if (getSelectedRow() >= 0) {
+        		notifyStockpiling(new StockpilingEvent(this, DeviceModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), true));
+        	}
         });
-        popupMenu.add(deleteMenuItem);
+        popupMenu.add(outsourceMenuItem);
 
         this.addMouseListener(new MouseAdapter() {
             @Override

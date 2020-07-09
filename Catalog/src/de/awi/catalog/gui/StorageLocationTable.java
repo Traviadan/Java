@@ -1,4 +1,4 @@
-package de.awi.catalog;
+package de.awi.catalog.gui;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -7,23 +7,19 @@ import java.util.Vector;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.event.EventListenerList;
+import javax.swing.event.ListSelectionListener;
 
 import de.awi.catalog.events.StockpilingEvent;
-import de.awi.catalog.gui.DeviceTypeTableCellRenderer;
-import de.awi.catalog.gui.StorageUnitTypeTableCellRenderer;
 import de.awi.catalog.interfaces.StockpilingListener;
-import de.awi.catalog.models.PartStorageUnits;
-import de.awi.catalog.models.PartStorageUnitsModel;
+import de.awi.catalog.models.StorageLocation;
 import de.awi.catalog.models.StorageLocationModel;
-import de.awi.catalog.models.StorageUnit;
-import de.awi.catalog.models.StorageUnitModel;
 
-public class PartStorageUnitsTable extends AbstractTable {
+public class StorageLocationTable extends AbstractTable {
 	private static final long serialVersionUID = 1L;
 
 	private EventListenerList stockpilingListeners = new EventListenerList();
-	
-	public PartStorageUnitsTable() {
+
+	public StorageLocationTable() {
 		super();
 		setRowSelectionAllowed(true);
 	}
@@ -42,7 +38,7 @@ public class PartStorageUnitsTable extends AbstractTable {
 	}
 	
 	public void setupColumns() {
-		PartStorageUnitsModel model = (PartStorageUnitsModel)getModel();
+		StorageLocationModel model = (StorageLocationModel)getModel();
 		Vector<Boolean> vis = model.getColumnVisibilities();
 		
 		for (String name: model.getColumnNames()) {
@@ -52,9 +48,13 @@ public class PartStorageUnitsTable extends AbstractTable {
 				getColumnModel().getColumn(col).setMinWidth(0);
 				getColumnModel().getColumn(col).setMaxWidth(0);
 			} else {
-				if (name == PartStorageUnits.AMOUNT) {
-					getColumnModel().getColumn(col).setPreferredWidth(80); // Menge
-					getColumnModel().getColumn(col).setMinWidth(40);
+				if (name == StorageLocation.NAME) {
+					getColumnModel().getColumn(col).setPreferredWidth(150); // Name
+					getColumnModel().getColumn(col).setMinWidth(100);
+					getColumnModel().getColumn(col).setMaxWidth(200);
+				} else if (name == StorageLocation.DESCRIPTION) {
+					getColumnModel().getColumn(col).setPreferredWidth(280); // Description
+					getColumnModel().getColumn(col).setMinWidth(150);
 				}
 			}
 		}
@@ -63,18 +63,18 @@ public class PartStorageUnitsTable extends AbstractTable {
 	public void addPopupMenu() {
         JPopupMenu popupMenu = new JPopupMenu();
         
-        JMenuItem stockpilingMenuItem = new JMenuItem("Lagermenge ändern");
+        JMenuItem stockpilingMenuItem = new JMenuItem("Lager zuordnen");
         stockpilingMenuItem.addActionListener((e) -> {
         	if (getSelectedRow() >= 0) {
-        		notifyStockpiling(new StockpilingEvent(this, PartStorageUnitsModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), false));
+        		notifyStockpiling(new StockpilingEvent(this, StorageLocationModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), false));
         	}
         });
         popupMenu.add(stockpilingMenuItem);
 
-        JMenuItem outsourceMenuItem = new JMenuItem("Auslagern");
+        JMenuItem outsourceMenuItem = new JMenuItem("Zuordnung entfernen");
         outsourceMenuItem.addActionListener((e) -> {
         	if (getSelectedRow() >= 0) {
-        		notifyStockpiling(new StockpilingEvent(this, PartStorageUnitsModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), true));
+        		notifyStockpiling(new StockpilingEvent(this, StorageLocationModel.class.cast(getModel()).getObjectAtRow(getSelectedRow()), true));
         	}
         });
         popupMenu.add(outsourceMenuItem);
@@ -88,4 +88,11 @@ public class PartStorageUnitsTable extends AbstractTable {
             }
         });
     }
+
+	@Override
+	public ListSelectionListener getListSelectionListener() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

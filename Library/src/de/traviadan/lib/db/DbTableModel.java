@@ -214,7 +214,8 @@ public class DbTableModel extends AbstractTableModel {
 	
 	protected void initColumns() {
 		for (Map.Entry<String, Map<String, Object>> colEntry: properties.entrySet()) {
-			order.put(colEntry.getKey(), (Integer)colEntry.getValue().get(Db.ORDER));
+			//System.out.println(colEntry.getValue());
+			order.put(colEntry.getKey(), (int)colEntry.getValue().get(Db.ORDER));
 		}
 		Map<String, Map<String, Object>> rest = new LinkedHashMap<>();
 		Map<String, Map<String, Object>> ordered = new LinkedHashMap<>();
@@ -256,19 +257,7 @@ public class DbTableModel extends AbstractTableModel {
 	
 	protected void initTableJoins() {
 		if (thisClass.isAnnotationPresent(DbTableJoin.class)) {
-			//List<Map.Entry<Class<?>, Map<String, Class<?>>>> l = new ArrayList<>();
 			getJoins(thisClass);
-			System.out.println("Joins (" + thisClass + "): " + joins);
-			
-			/*
-			for (Map.Entry<Class<?>, Map<String, Class<?>>> e : j.entrySet()) {
-				l.add(e);
-			}
-			for (int i = l.size()-1; i >= 0; i--) {
-				System.out.println(l.get(i).getKey());
-				joins.put(l.get(i).getKey(), l.get(i).getValue());
-			}
-			*/
 		}
 	}
 	

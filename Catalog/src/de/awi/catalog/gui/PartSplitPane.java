@@ -15,13 +15,8 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
-import de.awi.catalog.DeviceTable;
-import de.awi.catalog.PartStorageUnitsTable;
-import de.awi.catalog.PartTable;
 import de.awi.catalog.events.StockpilingEvent;
 import de.awi.catalog.interfaces.StockpilingListener;
-import de.awi.catalog.models.Device;
-import de.awi.catalog.models.DeviceModel;
 import de.awi.catalog.models.Material;
 import de.awi.catalog.models.Part;
 import de.awi.catalog.models.PartModel;
@@ -57,7 +52,7 @@ public class PartSplitPane extends EditTableSplitPane implements StockpilingList
 			}
 		});
 		table = new PartTable();
-		table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+		addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				if (!e.getValueIsAdjusting() && table.getSelectedRow() >= 0) {
@@ -175,7 +170,7 @@ public class PartSplitPane extends EditTableSplitPane implements StockpilingList
 	
 	public void setDividers() {
 		setDividerLocation(0.6);
-		splitEdit.setDividerLocation(0.7);
+		splitEdit.setDividerLocation(0.6);
 		psuPane.setDividers();
 	}
 	

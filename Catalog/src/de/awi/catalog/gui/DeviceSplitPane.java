@@ -15,7 +15,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
-import de.awi.catalog.DeviceTable;
 import de.awi.catalog.events.StockpilingEvent;
 import de.awi.catalog.interfaces.StockpilingListener;
 import de.awi.catalog.models.Device;
@@ -54,16 +53,16 @@ public class DeviceSplitPane extends EditTableSplitPane implements StockpilingLi
 			}
 		});
 		table = new DeviceTable();
-		table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+		addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				if (!e.getValueIsAdjusting() && table.getSelectedRow() >= 0) {
-					//System.out.println(model.getObjectAtRow(table.getSelectedRow()));
 					updateFields((Device)model.getObjectAtRow(table.getSelectedRow()));
 				}
 				
 			}
 		});
+
 		panelTable.setLayout(new BorderLayout(5, 5));
 		initTable(panelTable);
 		add(panelTable);

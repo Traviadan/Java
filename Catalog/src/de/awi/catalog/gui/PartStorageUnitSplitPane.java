@@ -2,12 +2,8 @@ package de.awi.catalog.gui;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
@@ -15,19 +11,12 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
-import de.awi.catalog.DeviceTable;
-import de.awi.catalog.PartStorageUnitsTable;
-import de.awi.catalog.StorageUnitTable;
 import de.awi.catalog.events.StockpilingEvent;
 import de.awi.catalog.interfaces.StockpilingListener;
-import de.awi.catalog.models.Device;
 import de.awi.catalog.models.Part;
 import de.awi.catalog.models.PartStorageUnits;
 import de.awi.catalog.models.PartStorageUnitsModel;
-import de.awi.catalog.models.StorageUnit;
-import de.awi.catalog.models.StorageUnitModel;
 import de.traviadan.lib.db.Db;
-import de.traviadan.lib.db.DbTableModel;
 import de.traviadan.lib.helper.Check;
 
 public class PartStorageUnitSplitPane extends EditTableSplitPane implements StockpilingListener {

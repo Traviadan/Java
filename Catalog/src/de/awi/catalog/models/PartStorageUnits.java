@@ -22,7 +22,7 @@ public class PartStorageUnits {
 		amount = 0.0d;
 	}
 	
-	@DbFieldGetter(name=ID, title="Id", visibility=false, constraint="PRIMARY KEY")
+	@DbFieldGetter(name=ID, title="Id", visibility=false)
 	public int getId() {
 		return this.id;
 	}
