@@ -107,21 +107,30 @@ public class DbTableModel extends AbstractTableModel {
 	public void populate(Db db, boolean join, boolean recursive, String[] where) {
 		if (join && joins.size() > 0) {
 			List<Map<String, Object>> rsData = db.leftJoin(thisClass, columns, joins, recursive, where);
-			for (Class<?> joinClass : joins.get(thisClass).values()) {
-				String joinTableName = Db.getTableName(joinClass);
-				List<Map<String, Object>> l = new ArrayList<>(); 
-				for (Map<String, Object> row : rsData) {
-					Map<String, Object> jd = new HashMap<>();
-					for (Map.Entry<String, Object> e : row.entrySet()) {
-						if (e.getKey().startsWith(joinTableName+"_")) {
-							jd.put(e.getKey(), e.getValue());
-						}
-					}
-					l.add(jd);
+			List<Class<?>> joinedTables = new ArrayList<>();
+			for (Map.Entry<Class<?>, Map<String, Class<?>>> je : joins.entrySet()) {
+				Map<String, Class<?>> cm = je.getValue();
+				for (Class<?> c : cm.values()) {
+					joinedTables.add(c);
 				}
-				joinedData.put(joinClass, l);
 			}
-			populate(rsData);
+			for (Class<?> c : joinedTables) {
+				if (c != thisClass) {
+					String joinTableName = Db.getTableName(c);
+					List<Map<String, Object>> l = new ArrayList<>(); 
+					for (Map<String, Object> row : rsData) {
+						Map<String, Object> jd = new HashMap<>();
+						for (Map.Entry<String, Object> e : row.entrySet()) {
+							if (e.getKey().startsWith(joinTableName+"_")) {
+								jd.put(e.getKey(), e.getValue());
+							}
+						}
+						l.add(jd);
+					}
+					joinedData.put(c, l);
+				}
+			}
+			populate(rsData, join);
 		} else {
 			populate(db);
 		}
@@ -129,16 +138,12 @@ public class DbTableModel extends AbstractTableModel {
 	
 	public void populate(Db db) {
 		List<Map<String, Object>> rsData = db.selectAll(thisClass, columns);
-		populate(rsData);
+		populate(rsData, false);
 	}
 	
-	public void populate(List<Map<String, Object>> rsData) {
+	public void populate(List<Map<String, Object>> rsData, boolean join) {
 		data.clear();
-		boolean joined = false;
 		String colName = "";
-		if (joinedData.size() > 0) {
-			joined = true;
-		}
 		Constructor<?> c = null;
 		try {
 			c = thisClass.getConstructor();
@@ -158,7 +163,7 @@ public class DbTableModel extends AbstractTableModel {
 			if (obj != null ) {
 				for (Map.Entry<String, Class<?>> entry: columns.entrySet()) {
 					if (setter.containsKey(entry.getKey())) {
-						if (joined) {
+						if (join) {
 							colName = String.format("%s_%s", tableName, entry.getKey());
 						} else {
 							colName = entry.getKey();
@@ -253,6 +258,7 @@ public class DbTableModel extends AbstractTableModel {
 		if (thisClass.isAnnotationPresent(DbTableJoin.class)) {
 			//List<Map.Entry<Class<?>, Map<String, Class<?>>>> l = new ArrayList<>();
 			getJoins(thisClass);
+			System.out.println("Joins (" + thisClass + "): " + joins);
 			
 			/*
 			for (Map.Entry<Class<?>, Map<String, Class<?>>> e : j.entrySet()) {

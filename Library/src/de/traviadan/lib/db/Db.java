@@ -245,7 +245,6 @@ public class Db {
     					eData.put(colName, rs.getObject(colName));
     				}
         		}
-        		System.out.println(eData);
         		rsData.add(eData);
 			}
             return rsData;

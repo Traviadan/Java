@@ -35,6 +35,7 @@ public class PartStorageUnitsModel extends DbTableModel {
 			switch (column - super.getColumnCount()) {
 				case 0:	return "Lagereinheit";
 				case 1: return "Lagerort";
+				case 2: return "Lager";
 				default: return "";
 			}
 		} else {
@@ -49,11 +50,12 @@ public class PartStorageUnitsModel extends DbTableModel {
 			return cc;
 		} else {
 			if (joinedData.keySet().contains(StorageUnit.class)) {
-				System.out.println("StorageUnit.class");
 				cc++;
 			}
 			if (joinedData.keySet().contains(StorageLocation.class)) {
-				System.out.println("StorageLocation.class");
+				cc++;
+			}
+			if (joinedData.keySet().contains(Storage.class)) {
 				cc++;
 			}
 		}
@@ -67,13 +69,16 @@ public class PartStorageUnitsModel extends DbTableModel {
 			String tableName;
 			List<Map<String, Object>> l;
 			switch (columnIndex - super.getColumnCount()) {
-				case 0:	tableName = StorageUnit.class.getAnnotation(DbTableName.class).name();
+				case 0:	tableName = Db.getTableName(StorageUnit.class);
 						l = joinedData.get(StorageUnit.class);
 						return l.get(rowIndex).get(String.format("%s_%s", tableName, StorageUnit.NAME));
 
-				case 1: tableName = StorageLocation.class.getAnnotation(DbTableName.class).name();
+				case 1: tableName = Db.getTableName(StorageLocation.class);
 						l = joinedData.get(StorageLocation.class);
 						return l.get(rowIndex).get(String.format("%s_%s", tableName, StorageLocation.NAME));
+				case 2: tableName = Db.getTableName(Storage.class);
+						l = joinedData.get(Storage.class);
+						return l.get(rowIndex).get(String.format("%s_%s", tableName, Storage.NAME));
 				default: return null;
 			}
 		} else {
