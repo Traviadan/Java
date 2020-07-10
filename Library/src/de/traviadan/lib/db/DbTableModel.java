@@ -48,9 +48,12 @@ public class DbTableModel extends AbstractTableModel {
 	
 	public void selectBy(Db db, String[] where) {
 		populate(db, true, true, where);
-		//populate(db, true, true, String.format("WHERE %s = %s", field, where.toString()));
 	}
 	
+	public void selectBy(Db db, String[] where, boolean join) {
+		populate(db, join, join, where);
+	}
+
 	@Override
 	public int findColumn(String name) {
 		int found = -1;

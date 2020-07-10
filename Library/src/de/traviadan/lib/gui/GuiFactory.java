@@ -80,6 +80,22 @@ public class GuiFactory {
 				gridx, gridy);
 	}
 
+	/**
+	* Fügt eine Komponente mit einem Textlabel links davon im GridBagLayout hinzu
+	*
+	* @param panel Container
+	* @param gbl GridBagLayout
+	* @param comp Component
+	* @param fill int[] GridBagConstraints.NONE, GridBagConstraints.HORIZONTAL, GridBagConstraints.BOTH
+	* @param anchor int[] GridBagConstraints.EAST, GridBagConstraints.WEST, GridBagConstraints.NORTH, GridBagConstraints.SOUTH
+	* @param width int[]
+	* @param height int[]
+	* @param weight float[][] [weightx][weighty][weightx][weighty]
+	* @param pad int[][] [ipadx][ipady][ipadx][ipady]
+	* @param insets Insets[] [(top, left, bottom, right)][(top, left, bottom, right)]
+	* @param gridx int
+	* @param gridy int
+	*/	
 	public static void placeComponent(
 			Container panel, GridBagLayout gbl, String labelText, Component comp,
 			int[] fill,
@@ -116,4 +132,41 @@ public class GuiFactory {
 		panel.add(comp);
 	}
 
+	/**
+	* Fügt eine Komponente im GridBagLayout hinzu
+	*
+	* @param panel Container
+	* @param gbl GridBagLayout
+	* @param comp Component
+	* @param fill int GridBagConstraints.NONE, GridBagConstraints.HORIZONTAL, GridBagConstraints.BOTH
+	* @param anchor int GridBagConstraints.EAST, GridBagConstraints.WEST, GridBagConstraints.NORTH, GridBagConstraints.SOUTH
+	* @param width int
+	* @param height int
+	* @param weight float[] [weightx][weighty]
+	* @param pad int[] [ipadx][ipady]
+	* @param insets Insets(top, left, bottom, right)
+	* @param gridx int
+	* @param gridy int
+	*/	
+	public static void placeSingleComponent(
+			Container panel, GridBagLayout gbl, Component comp,
+			int fill,
+			int anchor,
+			int width, int height,
+			float[] weight,	int[] pad,
+			Insets insets,
+			int gridx, int gridy) {
+
+		GridBagConstraints gbc;
+		gbc = new GridBagConstraints();
+		gbc.insets = insets;
+		gbc.fill = fill;
+		gbc.gridx = gridx; gbc.gridy = gridy;
+		gbc.gridwidth = width; gbc.gridheight = height;
+		gbc.weightx = weight[0]; gbc.weighty = weight[1];
+		gbc.ipadx = pad[0]; gbc.ipady = pad[1];
+		gbc.anchor = anchor;
+		gbl.setConstraints(comp, gbc);
+		panel.add(comp);
+	}
 }

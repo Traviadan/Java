@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JComponent;
@@ -17,7 +18,11 @@ import de.awi.catalog.interfaces.StockpilingListener;
 import de.awi.catalog.models.Checklist;
 import de.awi.catalog.models.ChecklistModel;
 import de.awi.catalog.models.Device;
+import de.awi.catalog.models.DeviceChecklists;
+import de.awi.catalog.models.DeviceChecklistsModel;
+import de.awi.catalog.models.DeviceModel;
 import de.traviadan.lib.db.Db;
+import de.traviadan.lib.gui.WindowClosedListener;
 
 public class ChecklistSplitPane extends EditTableSplitPane implements StockpilingListener {
 
@@ -68,14 +73,47 @@ public class ChecklistSplitPane extends EditTableSplitPane implements Stockpilin
 		btnUpdate.addActionListener(new ActionListener(){
 			@Override
 	    	public void actionPerformed(ActionEvent e){
-				if (device != null) {
+				if (id > 0) {
+					DeviceChecklistsModel dcm = new DeviceChecklistsModel();
+					dcm.selectBy(db, new String[] { DeviceChecklists.CHECKLISTID, ""+id }, false);
+					DeviceChecklists dc = (DeviceChecklists)dcm.getObjectAtRow(0);
+					DeviceModel dm = new DeviceModel();
+					dm.selectBy(db, new String[] {Device.ID, ""+dc.getId()}, false);
+					Device device = (Device)dm.getObjectAtRow(0);
 					checklistView = new ChecklistView(getParent(), device);
-					SwingUtilities.invokeLater( new Runnable() {
-						public void run() {
-							checklistView.setVisible(true);
+					Checklist c = (Checklist)model.getObjectAtRow(table.getSelectedRow());
+					checklistView.setChecklist(c);
+					checklistView.addWindowListener(new WindowClosedListener() {
+						@Override public void windowClosed( WindowEvent event ) {
+							Checklist c = checklistView.getChecklist();
+							model.update(db, c);
+							populateModel(false, null);
+							model.fireTableDataChanged();
+						}
+					});
+				} else {
+					checklistView = new ChecklistView(getParent(), device);
+					checklistView.addWindowListener(new WindowClosedListener() {
+						@Override public void windowClosed( WindowEvent event ) {
+							Checklist c = checklistView.getChecklist();
+							int lastId = model.insert(db, c);
+							c.setId(lastId);
+							populateModel(false, null);
+							model.fireTableDataChanged();
+							DeviceChecklistsModel dcm = new DeviceChecklistsModel();
+							DeviceChecklists dc = new DeviceChecklists();
+							dc.setId(device.getId());
+							dc.setChecklistId(lastId);
+							dcm.insert(db, dc);
 						}
 					});
 				}
+				SwingUtilities.invokeLater( new Runnable() {
+					public void run() {
+						checklistView.setVisible(true);
+					}
+				});
+
 	        }  
 	    });
 		btnUpdate.setEnabled(false);
@@ -84,6 +122,7 @@ public class ChecklistSplitPane extends EditTableSplitPane implements Stockpilin
 			@Override
 	    	public void actionPerformed(ActionEvent e){
 				clearFields();
+				updateButtons();
 	        }  
 	    });
 
@@ -128,10 +167,15 @@ public class ChecklistSplitPane extends EditTableSplitPane implements Stockpilin
 	
 	@Override
 	protected void updateButtons() {
-		if (id == 0) {
-			btnUpdate.setText("Insert");
-		} else {
+		if (id > 0) {
 			btnUpdate.setText("View");
+			btnUpdate.setEnabled(true);
+		} else if (device != null) {
+			btnUpdate.setText("Insert");
+			btnUpdate.setEnabled(true);
+		} else {
+			btnUpdate.setText("Insert");
+			btnUpdate.setEnabled(false);
 		}
 	}
 

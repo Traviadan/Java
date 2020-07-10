@@ -38,6 +38,7 @@ import de.awi.catalog.gui.StorageUnitSplitPane;
 import de.awi.catalog.gui.StorageUnitTable;
 import de.awi.catalog.models.ChecklistModel;
 import de.awi.catalog.models.Device;
+import de.awi.catalog.models.DeviceChecklistsModel;
 import de.awi.catalog.models.DeviceModel;
 import de.awi.catalog.models.PartModel;
 import de.awi.catalog.models.PartStorageUnitsModel;
@@ -66,6 +67,7 @@ public class MainWindow extends WindowFrame{
 	private StorageModel storageModel;
 	private PartStorageUnitsModel partStorageUnitsModel;
 	private ChecklistModel checklistModel;
+	private DeviceChecklistsModel deviceChecklistsModel;
 	
 	private PartSplitPane partPane;
 	
@@ -104,6 +106,8 @@ public class MainWindow extends WindowFrame{
 		partStorageUnitsModel.createDbTable(db);
 		checklistModel = new ChecklistModel();
 		checklistModel.createDbTable(db);
+		deviceChecklistsModel = new DeviceChecklistsModel();
+		deviceChecklistsModel.createDbTable(db);
 		
 		init();
 	}
